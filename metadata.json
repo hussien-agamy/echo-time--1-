@@ -1,0 +1,7 @@
+{
+  "name": "Echo Time",
+  "description": "A skill-exchange platform where users trade time for services, build a professional reputation through badges and reviews, and eventually unlock freelance opportunities.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
