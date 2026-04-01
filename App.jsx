@@ -30,7 +30,7 @@ import Auth from './pages/Auth';
 import Chat from './pages/Chat';
 
 // Components
-import { AIAssistant } from './components/AIAssistant';
+// import { AIAssistant } from './components/AIAssistant';
 
 const Navbar = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -166,8 +166,6 @@ const App = () => {
             <Route path="/chat" element={user.isAuthenticated ? <PageWrapper><Chat user={user} threads={chatThreads} setThreads={setChatThreads} /></PageWrapper> : <Navigate to="/auth" />} />
           </Routes>
         </main>
-
-        {user.isAuthenticated && <AIAssistant />}
 
         {user.isAuthenticated &&
         <footer className="bg-white/10 backdrop-blur-xl py-12 border-t border-white/20 mt-20 hidden md:block">
