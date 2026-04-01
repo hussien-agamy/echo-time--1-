@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   MessageSquare,
-  LogOut } from
+  LogOut,
+  Shield } from
 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,6 +29,8 @@ import Pricing from './pages/Pricing';
 import FreelanceMode from './pages/FreelanceMode';
 import Auth from './pages/Auth';
 import Chat from './pages/Chat';
+import AdminDashboard from './pages/AdminDashboard';
+import Onboarding from './pages/Onboarding';
 
 // Components
 // import { AIAssistant } from './components/AIAssistant';
@@ -41,7 +44,8 @@ const Navbar = ({ user, onLogout }) => {
   { name: 'Market', path: '/community', icon: <Users size={18} /> },
   { name: 'Messages', path: '/chat', icon: <MessageSquare size={18} /> },
   { name: 'Pricing', path: '/pricing', icon: <CreditCard size={18} /> },
-  { name: 'Profile', path: '/profile', icon: <UserIcon size={18} /> }];
+  { name: 'Profile', path: '/profile', icon: <UserIcon size={18} /> },
+  { name: 'Admin', path: '/admin', icon: <Shield size={18} /> }];
 
 
   if (!user.isAuthenticated) return null;
@@ -146,6 +150,12 @@ const App = () => {
 
   };
 
+  const ProtectedRoute = ({ children }) => {
+    if (!user.isAuthenticated) return <Navigate to="/auth" />;
+    if (user.hasCompletedOnboarding === false) return <Navigate to="/onboarding" />;
+    return <PageWrapper>{children}</PageWrapper>;
+  };
+
   return (
     <Router>
       <div className="min-h-screen flex flex-col animated-gradient pb-20 md:pb-0 selection:bg-blue-200">
@@ -153,17 +163,19 @@ const App = () => {
         
         <main className={`flex-1 ${user.isAuthenticated ? 'mt-20' : ''} px-4 md:px-8 max-w-7xl mx-auto w-full py-8`}>
           <Routes>
-            <Route path="/auth" element={user.isAuthenticated ? <Navigate to="/" /> : <Auth onLogin={setUser} />} />
+            <Route path="/auth" element={!user.isAuthenticated ? <Auth onLogin={setUser} /> : (user.hasCompletedOnboarding === false ? <Navigate to="/onboarding" /> : <Navigate to="/" />)} />
+            <Route path="/onboarding" element={user.isAuthenticated && user.hasCompletedOnboarding === false ? <PageWrapper><Onboarding user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/" />} />
             
-            <Route path="/" element={user.isAuthenticated ? <PageWrapper><Home /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/get-started" element={user.isAuthenticated ? <PageWrapper><GetStarted /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/profile" element={user.isAuthenticated ? <PageWrapper><Profile user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/community" element={user.isAuthenticated ? <PageWrapper><Community user={user} setUser={setUser} chatThreads={chatThreads} setChatThreads={setChatThreads} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/request-help" element={user.isAuthenticated ? <PageWrapper><RequestForm user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/offer-help" element={user.isAuthenticated ? <PageWrapper><OfferForm user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/pricing" element={user.isAuthenticated ? <PageWrapper><Pricing user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/freelance" element={user.isAuthenticated ? <PageWrapper><FreelanceMode user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/auth" />} />
-            <Route path="/chat" element={user.isAuthenticated ? <PageWrapper><Chat user={user} threads={chatThreads} setThreads={setChatThreads} /></PageWrapper> : <Navigate to="/auth" />} />
+            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/get-started" element={<ProtectedRoute><GetStarted /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community user={user} setUser={setUser} chatThreads={chatThreads} setChatThreads={setChatThreads} /></ProtectedRoute>} />
+            <Route path="/request-help" element={<ProtectedRoute><RequestForm user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route path="/offer-help" element={<ProtectedRoute><OfferForm user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute><Pricing user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route path="/freelance" element={<ProtectedRoute><FreelanceMode user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route path="/chat" element={<ProtectedRoute><Chat user={user} threads={chatThreads} setThreads={setChatThreads} /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard user={user} /></ProtectedRoute>} />
           </Routes>
         </main>
 

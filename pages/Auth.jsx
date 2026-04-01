@@ -48,6 +48,8 @@ const Auth = ({ onLogin }) => {
       badges: [],
       certificates: [],
       freelanceUnlocked: false,
+      hasCompletedOnboarding: mode === 'login',
+      onboardingData: null,
       createdAt: new Date().toISOString()
     });
   };

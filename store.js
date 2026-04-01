@@ -24,6 +24,16 @@ const INITIAL_USER = {
   { id: 'c2', title: 'Expert Communicator', description: 'Complete 5 collaborative tasks', unlocked: false }],
 
   freelanceUnlocked: false,
+  hasCompletedOnboarding: true, // For the mock user Alex we can assume they onboarded, wait no, let's make it true so existing users don't get forced into it suddenly?
+  // Wait, if it's Alex, they shouldn't be forced. If they sign up newly, it's false in Auth.jsx.
+  hasCompletedOnboarding: true,
+  onboardingData: {
+    intent: 'both',
+    category: 'design',
+    level: 'advanced',
+    startPoint: 'explore',
+    goal: 'freelance'
+  },
   createdAt: new Date().toISOString()
 };
 

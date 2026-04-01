@@ -153,6 +153,26 @@ const Profile = ({ user, setUser }) => {
                   "{user.bio}"
                 </p>
             }
+              {user.onboardingData && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                  <div className="bg-blue-50 p-5 rounded-[2rem] border border-blue-100 shadow-sm">
+                    <div className="text-[10px] uppercase font-black text-blue-400 tracking-widest mb-1">Intent</div>
+                    <div className="font-bold text-blue-900 capitalize">{user.onboardingData.intent}</div>
+                  </div>
+                  <div className="bg-purple-50 p-5 rounded-[2rem] border border-purple-100 shadow-sm">
+                    <div className="text-[10px] uppercase font-black text-purple-400 tracking-widest mb-1">Focus</div>
+                    <div className="font-bold text-purple-900 capitalize">{user.onboardingData.category === 'other' ? user.onboardingData.otherCategory : user.onboardingData.category}</div>
+                  </div>
+                  <div className="bg-emerald-50 p-5 rounded-[2rem] border border-emerald-100 shadow-sm">
+                    <div className="text-[10px] uppercase font-black text-emerald-400 tracking-widest mb-1">Level</div>
+                    <div className="font-bold text-emerald-900 capitalize">{user.onboardingData.level}</div>
+                  </div>
+                  <div className="bg-amber-50 p-5 rounded-[2rem] border border-amber-100 shadow-sm">
+                    <div className="text-[10px] uppercase font-black text-amber-400 tracking-widest mb-1">Goal</div>
+                    <div className="font-bold text-amber-900 capitalize">{user.onboardingData.goal?.replace('-', ' ')}</div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-10 border-t border-blue-50">
                 {[
               { label: 'Helped', val: '15', icon: <Users size={20} /> },
