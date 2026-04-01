@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { api } from '../services/api';
 import { getStoredRequests, saveRequests } from '../store';
 import {
   Search,
@@ -28,9 +29,35 @@ import { Link } from 'react-router-dom';
 
 const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState(getStoredRequests());
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [isProcessing, setIsProcessing] = useState(null);
+
+  React.useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get('/tasks/open');
+        // Map backend fields to frontend expected fields
+        const mappedTasks = response.data.map(t => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          skillNeeded: Array.isArray(t.required_skills) ? t.required_skills[0] : t.required_skills,
+          timeRequired: t.estimated_hours,
+          location: 'online', // Defaulting for now
+          requesterId: t.creator_id,
+          status: t.status
+        }));
+        setRequests(mappedTasks);
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   const handleHelp = (req) => {
     setIsProcessing(req.id);
@@ -123,64 +150,78 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
           </div>
 
           <div className="grid gap-8">
-            <AnimatePresence mode="popLayout">
-              {requests.map((req) =>
-              <motion.div
-                key={req.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                whileHover={{ scale: 1.01 }}
-                className="group bg-white shadow-2xl rounded-[3rem] p-10 border border-blue-50 hover:border-blue-200 transition-all duration-300 relative overflow-hidden">
-                
-                  {isProcessing === req.id &&
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-4">
-                      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-black text-blue-600 uppercase tracking-widest text-xs">Matching now...</span>
-                    </div>
-                }
-                  
-                  <div className="flex flex-col md:flex-row justify-between gap-8">
-                    <div className="space-y-5 flex-1">
-                      <div className="flex items-center gap-4">
-                        <span className="bg-blue-600 text-white px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-100">
-                          {req.skillNeeded}
-                        </span>
-                        <span className="flex items-center gap-2 text-blue-300 text-xs font-black uppercase tracking-widest">
-                          {req.location === 'online' ? <Globe size={14} /> : <MapPin size={14} />}
-                          {req.location}
-                        </span>
-                      </div>
-                      <h3 className="text-3xl font-black text-blue-900 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{req.title}</h3>
-                      <p className="text-blue-800/60 font-medium leading-relaxed text-lg">{req.description}</p>
-                      
-                      <div className="flex items-center gap-8 pt-4 border-t border-blue-50">
-                        <div className="flex items-center gap-3 text-blue-700 font-black text-xl tracking-tighter">
-                          <Clock size={20} className="text-blue-600" />
-                          <span>{req.timeRequired} Hours</span>
-                        </div>
-                        <div className="flex -space-x-3">
-                          {[1, 2, 3].map((i) =>
-                        <img key={i} src={`https://picsum.photos/40/40?random=${req.id + i}`} className="w-10 h-10 rounded-2xl border-4 border-white shadow-xl" alt="" />
-                        )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-row md:flex-col justify-end gap-4 min-w-[180px]">
-                      <button
-                      onClick={() => handleHelp(req)}
-                      className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 group active:scale-95">
-                      
-                        Help Now
-                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4 text-blue-200">
+                <div className="w-10 h-10 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <span className="font-black uppercase tracking-widest text-xs">Loading market...</span>
+              </div>
+            ) : (
+              <AnimatePresence mode="popLayout">
+                {requests.length === 0 ? (
+                  <div className="bg-white/5 border border-white/10 rounded-[3rem] p-20 text-center space-y-4">
+                    <h3 className="text-2xl font-black text-white opacity-50">No tasks available right now.</h3>
+                    <p className="text-blue-200">Be the first to post a task!</p>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                ) : (
+                  requests.map((req) =>
+                  <motion.div
+                    key={req.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    whileHover={{ scale: 1.01 }}
+                    className="group bg-white shadow-2xl rounded-[3rem] p-10 border border-blue-50 hover:border-blue-200 transition-all duration-300 relative overflow-hidden">
+                    
+                      {isProcessing === req.id &&
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-4">
+                          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="font-black text-blue-600 uppercase tracking-widest text-xs">Matching now...</span>
+                        </div>
+                    }
+                      
+                      <div className="flex flex-col md:flex-row justify-between gap-8">
+                        <div className="space-y-5 flex-1">
+                          <div className="flex items-center gap-4">
+                            <span className="bg-blue-600 text-white px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-100">
+                              {req.skillNeeded}
+                            </span>
+                            <span className="flex items-center gap-2 text-blue-300 text-xs font-black uppercase tracking-widest">
+                              {req.location === 'online' ? <Globe size={14} /> : <MapPin size={14} />}
+                              {req.location}
+                            </span>
+                          </div>
+                          <h3 className="text-3xl font-black text-blue-900 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{req.title}</h3>
+                          <p className="text-blue-800/60 font-medium leading-relaxed text-lg">{req.description}</p>
+                          
+                          <div className="flex items-center gap-8 pt-4 border-t border-blue-50">
+                            <div className="flex items-center gap-3 text-blue-700 font-black text-xl tracking-tighter">
+                              <Clock size={20} className="text-blue-600" />
+                              <span>{req.timeRequired} Hours</span>
+                            </div>
+                            <div className="flex -space-x-3">
+                              {[1, 2, 3].map((i) =>
+                            <img key={i} src={`https://picsum.photos/40/40?random=${req.id + i}`} className="w-10 h-10 rounded-2xl border-4 border-white shadow-xl" alt="" />
+                            )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-row md:flex-col justify-end gap-4 min-w-[180px]">
+                          <button
+                          onClick={() => handleHelp(req)}
+                          className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                          
+                            Help Now
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                )}
+              </AnimatePresence>
+            )}
           </div>
         </div>
 

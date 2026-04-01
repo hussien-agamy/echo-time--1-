@@ -16,7 +16,8 @@ import {
 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { getStoredUser, saveUser } from './store';
+import { getStoredUser, saveUser, getToken, removeToken } from './store';
+import { api } from './services/api';
 
 // Pages
 import Home from './pages/Home';
@@ -134,8 +135,26 @@ const App = () => {
     saveUser(user);
   }, [user]);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = getToken();
+      if (token && !user.isAuthenticated) {
+        try {
+          const userData = await api.get('/users/me');
+          setUser({ ...userData, isAuthenticated: true });
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+          removeToken();
+          setUser({ ...INITIAL_USER, isAuthenticated: false });
+        }
+      }
+    };
+    fetchUser();
+  }, []);
+
   const handleLogout = () => {
-    setUser({ ...user, isAuthenticated: false });
+    removeToken();
+    setUser({ isAuthenticated: false, hasCompletedOnboarding: false });
   };
 
   const PageWrapper = ({ children }) => {

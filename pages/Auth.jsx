@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User as UserIcon, ShieldCheck, Upload, ArrowRight, Check, Info } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, ShieldCheck, Upload, ArrowRight, Check, Info, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
+import { setToken } from '../store';
 
 
 
@@ -15,43 +17,56 @@ const Auth = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [idFile, setIdFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
+    setError(null);
     if (mode === 'signup') {
       if (!email || !username || !password) {
-        alert("Please fill in all fields to continue.");
+        setError("Please fill in all fields to continue.");
         return;
       }
       setStep('verify');
     } else {
       if (!email || !password) {
-        alert("Please enter your email and password.");
+        setError("Please enter your email and password.");
         return;
       }
-      completeAuth();
+      
+      setLoading(true);
+      try {
+        const response = await api.post('/users/login', { email, password });
+        setToken(response.token);
+        onLogin({ ...response.user, isAuthenticated: true, hasCompletedOnboarding: response.is_onboarded });
+      } catch (err) {
+        setError(err.message || "Failed to login");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const completeAuth = () => {
-    onLogin({
-      id: 'user_' + Date.now(),
-      username: username || 'Alex Rivera',
-      email,
-      isAuthenticated: true,
-      isVerified: idFile ? true : mode === 'login', // Assume old users are verified for this demo
-      avatar: 'https://picsum.photos/200',
-      bio: 'Ready to help the community!',
-      skills: [],
-      timeBalance: 10,
-      ratingAvg: 5.0,
-      reviewsCount: 0,
-      badges: [],
-      certificates: [],
-      freelanceUnlocked: false,
-      hasCompletedOnboarding: mode === 'login',
-      onboardingData: null,
-      createdAt: new Date().toISOString()
-    });
+  const completeAuth = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      // In a real app we would upload the idFile here
+      const response = await api.post('/users/register', { 
+        email, 
+        password, 
+        fullName: username 
+      });
+      
+      // Auto login after register
+      const loginRes = await api.post('/users/login', { email, password });
+      setToken(loginRes.token);
+      onLogin({ ...loginRes.user, isAuthenticated: true, hasCompletedOnboarding: false });
+    } catch (err) {
+      setError(err.message || "Failed to create account");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,10 +109,20 @@ const Auth = ({ onLogin }) => {
             
               <div className="text-center">
                 <h2 className="text-3xl font-black text-blue-900">{mode === 'signup' ? 'Create Account' : 'Welcome Back'}</h2>
-                <button onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="text-blue-600 font-bold text-sm hover:underline mt-2">
+                <button onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(null); }} className="text-blue-600 font-bold text-sm hover:underline mt-2">
                   {mode === 'signup' ? 'Already have an account? Login' : 'Need an account? Sign up'}
                 </button>
               </div>
+
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold border border-red-100 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+                  {error}
+                </motion.div>
+              )}
 
               <div className="space-y-4">
                 {mode === 'signup' &&
@@ -127,9 +152,10 @@ const Auth = ({ onLogin }) => {
 
               <button
               onClick={handleAuth}
-              className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all">
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2">
               
-                {mode === 'signup' ? 'Continue' : 'Login'}
+                {loading ? <Loader2 className="animate-spin" /> : (mode === 'signup' ? 'Continue' : 'Login')}
               </button>
             </motion.div>
           }
@@ -176,10 +202,10 @@ const Auth = ({ onLogin }) => {
                 <button onClick={() => setStep('form')} className="flex-1 py-4 text-blue-400 font-black uppercase tracking-widest text-xs hover:text-blue-600 transition-colors">Back</button>
                 <button
                 onClick={completeAuth}
-                disabled={!idFile}
-                className="flex-[2] bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-blue-100 disabled:opacity-50 hover:bg-blue-700 transition-all active:scale-95">
+                disabled={!idFile || loading}
+                className="flex-[2] bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-blue-100 disabled:opacity-50 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
                 
-                  Confirm & Join
+                  {loading ? <Loader2 className="animate-spin" /> : 'Confirm & Join'}
                 </button>
               </div>
             </motion.div>

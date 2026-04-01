@@ -13,6 +13,7 @@ import {
   Layers,
   Loader2 } from
 'lucide-react';
+import { api } from '../services/api';
 import { motion } from 'framer-motion';
 
 const RequestForm = ({ user, setUser }) => {
@@ -27,7 +28,7 @@ const RequestForm = ({ user, setUser }) => {
     offlineDetails: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (user.timeBalance < formData.timeRequired) {
@@ -37,24 +38,25 @@ const RequestForm = ({ user, setUser }) => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newRequest = {
-        id: `req_${Date.now()}`,
-        ...formData,
-        status: 'open',
-        requesterId: user.id,
-        createdAt: new Date().toISOString()
+    try {
+      const taskData = {
+        title: formData.title,
+        description: formData.description,
+        estimated_hours: formData.timeRequired,
+        required_skills: [formData.skillNeeded]
       };
 
-      const currentRequests = getStoredRequests();
-      saveRequests([...currentRequests, newRequest]);
-
-      // Deduct time
+      const response = await api.post('/tasks', taskData);
+      
+      // Update local user state (deduct time)
       setUser({ ...user, timeBalance: user.timeBalance - formData.timeRequired });
 
       setIsSubmitting(false);
       navigate('/community');
-    }, 1500);
+    } catch (error) {
+      alert(error.message || "Failed to create task");
+      setIsSubmitting(false);
+    }
   };
 
   return (

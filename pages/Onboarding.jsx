@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Compass, HeartHandshake, Briefcase, Code, Network, PenTool, Layout, 
   Languages, LineChart, Target, Trophy, Star, ArrowRight, UserPlus, 
-  BookOpen, Activity, Play, CheckCircle2 
+  BookOpen, Activity, Play, CheckCircle2, Loader2 
 } from 'lucide-react';
+import { api } from '../services/api';
 
 const Onboarding = ({ user, setUser }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
     intent: '',
     category: '',
@@ -89,13 +91,27 @@ const Onboarding = ({ user, setUser }) => {
     }
   };
 
-  const handleComplete = () => {
-    setUser({ ...user, hasCompletedOnboarding: true, onboardingData: data });
-    
-    // Redirect based on intent
-    if (data.startPoint === 'request') navigate('/request-help');
-    else if (data.startPoint === 'offer') navigate('/offer-help');
-    else navigate('/community');
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      const surveyData = {
+        ...data,
+        interests: [data.category === 'other' ? data.otherCategory : data.category]
+      };
+
+      const response = await api.post('/users/onboarding', surveyData);
+      
+      setUser({ ...user, ...response.data, hasCompletedOnboarding: true });
+      
+      // Redirect based on intent
+      if (data.startPoint === 'request') navigate('/request-help');
+      else if (data.startPoint === 'offer') navigate('/offer-help');
+      else navigate('/community');
+    } catch (error) {
+      alert(error.message || "Failed to complete onboarding");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const currentStepData = steps[step - 1];
@@ -213,9 +229,10 @@ const Onboarding = ({ user, setUser }) => {
                     </div>
                     <button 
                       onClick={handleComplete}
-                      className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-lg flex items-center gap-3 hover:scale-105 transition-all shadow-lg w-full md:w-auto justify-center"
+                      disabled={loading}
+                      className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-lg flex items-center gap-3 hover:scale-105 transition-all shadow-lg w-full md:w-auto justify-center disabled:opacity-70"
                     >
-                      <Play size={20} fill="currentColor" /> Let's Go
+                      {loading ? <Loader2 className="animate-spin" /> : <><Play size={20} fill="currentColor" /> Let's Go</>}
                     </button>
                   </div>
                 </motion.div>

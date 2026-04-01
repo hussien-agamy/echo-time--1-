@@ -20,6 +20,7 @@ import {
   Info } from
 'lucide-react';
 import { Link } from 'react-router-dom';
+import { api } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 
@@ -42,21 +43,38 @@ const Profile = ({ user, setUser }) => {
   { id: 'reviews', label: 'Reviews', icon: <Star size={18} /> }];
 
 
-  const handleSaveBio = () => {
-    setUser({ ...user, bio: tempBio });
-    setIsEditingBio(false);
-  };
-
-  const addSkill = () => {
-    const skill = newSkill.trim();
-    if (skill && !user.skills.includes(skill)) {
-      setUser({ ...user, skills: [...user.skills, skill] });
-      setNewSkill('');
+  const handleSaveBio = async () => {
+    try {
+      await api.post('/users/onboarding', { ...user.onboardingData, bio: tempBio, interests: user.skills });
+      setUser({ ...user, bio: tempBio });
+      setIsEditingBio(false);
+    } catch (error) {
+      alert("Failed to save bio: " + error.message);
     }
   };
 
-  const removeSkill = (skillToRemove) => {
-    setUser({ ...user, skills: user.skills.filter((s) => s !== skillToRemove) });
+  const addSkill = async () => {
+    const skill = newSkill.trim();
+    if (skill && !user.skills.includes(skill)) {
+      const updatedSkills = [...user.skills, skill];
+      try {
+        await api.post('/users/onboarding', { ...user.onboardingData, interests: updatedSkills });
+        setUser({ ...user, skills: updatedSkills });
+        setNewSkill('');
+      } catch (error) {
+        alert("Failed to add skill: " + error.message);
+      }
+    }
+  };
+
+  const removeSkill = async (skillToRemove) => {
+    const updatedSkills = user.skills.filter((s) => s !== skillToRemove);
+    try {
+      await api.post('/users/onboarding', { ...user.onboardingData, interests: updatedSkills });
+      setUser({ ...user, skills: updatedSkills });
+    } catch (error) {
+      alert("Failed to remove skill: " + error.message);
+    }
   };
 
   return (
