@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Echo Time Dev Bypass</title></head>
+<body>
+<script>
+// Inject mock authenticated user into localStorage
+localStorage.setItem('echo_user', JSON.stringify({
+  id: 'user_test_1',
+  username: 'Alex Rivera',
+  email: 'alex@echo.time',
+  isAuthenticated: true,
+  isVerified: true,
+  hasCompletedOnboarding: true,
+  avatar: 'https://picsum.photos/200',
+  bio: 'Passionate UI designer and developer.',
+  skills: ['UI Design', 'React', 'TypeScript'],
+  timeBalance: 12.5,
+  ratingAvg: 4.8,
+  reviewsCount: 15,
+  badges: [
+    { id: 'b1', title: 'First Help', description: 'Help 1 user to unlock', icon: '🤝', unlocked: true },
+    { id: 'b2', title: 'Time Lord', description: 'Accumulate 20 hours', icon: '⏱', unlocked: false },
+    { id: 'b3', title: 'Top Rated', description: '4.5+ rating for 10 reviews', icon: '⭐', unlocked: true }
+  ],
+  certificates: [
+    { id: 'c1', title: 'Platform Pioneer', description: 'Founding member', unlocked: true },
+    { id: 'c2', title: 'Expert Communicator', description: 'Complete 5 tasks', unlocked: false }
+  ],
+  freelanceUnlocked: false,
+  onboardingData: {
+    intent: 'both',
+    category: 'design',
+    level: 'advanced',
+    startPoint: 'community',
+    goal: 'freelance'
+  },
+  createdAt: new Date().toISOString()
+}));
+
+// Also set a fake token
+localStorage.setItem('echo_token', 'dev_bypass_token');
+
+// Redirect to the app
+window.location.href = '/';
+</script>
+<p>Redirecting...</p>
+</body>
+</html>

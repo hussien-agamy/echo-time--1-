@@ -6,13 +6,15 @@ import {
   Users,
   CreditCard,
   User as UserIcon,
-
+  Flame,
   Clock,
   Menu,
   X,
   MessageSquare,
   LogOut,
-  Shield } from
+  Shield,
+  Lock
+} from
 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -32,6 +34,10 @@ import Auth from './pages/Auth';
 import Chat from './pages/Chat';
 import AdminDashboard from './pages/AdminDashboard';
 import Onboarding from './pages/Onboarding';
+import Streaks from './pages/Streaks';
+import { StreakBadge, loadStreaks } from './components/StreakSystem';
+import EchoTimeLogo from './components/EchoTimeLogo';
+import { path } from 'framer-motion/client';
 
 // Components
 // import { AIAssistant } from './components/AIAssistant';
@@ -43,6 +49,8 @@ const Navbar = ({ user, onLogout }) => {
   const navLinks = [
   { name: 'Home', path: '/', icon: <HomeIcon size={18} /> },
   { name: 'Market', path: '/community', icon: <Users size={18} /> },
+  { name: 'Freelance', path: '/freelance', icon: <Lock size={18} /> },
+  { name: 'Streaks', path: '/streaks', icon: <Flame size={18} /> },
   { name: 'Messages', path: '/chat', icon: <MessageSquare size={18} /> },
   { name: 'Pricing', path: '/pricing', icon: <CreditCard size={18} /> },
   { name: 'Profile', path: '/profile', icon: <UserIcon size={18} /> },
@@ -53,14 +61,9 @@ const Navbar = ({ user, onLogout }) => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-blue-100 px-4 md:px-8 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-8xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
-            
-            E
-          </motion.div>
+          <EchoTimeLogo size={40} />
           <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500 tracking-tight">Echo Time</span>
         </Link>
 
@@ -83,9 +86,12 @@ const Navbar = ({ user, onLogout }) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 shadow-sm">
-            <Clock size={16} className="text-blue-600" />
-            <span className="font-black text-blue-700">{user.timeBalance}h</span>
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 shadow-sm">
+              <Clock size={16} className="text-blue-600" />
+              <span className="font-black text-blue-700">{user.timeBalance}h</span>
+            </div>
+            <StreakBadge streaks={loadStreaks()} onClick={() => window.location.hash = '#/streaks'} />
           </div>
           
           <button className="hidden md:flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={onLogout}>
@@ -195,6 +201,7 @@ const App = () => {
             <Route path="/freelance" element={<ProtectedRoute><FreelanceMode user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat user={user} threads={chatThreads} setThreads={setChatThreads} /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard user={user} /></ProtectedRoute>} />
+            <Route path="/streaks" element={<ProtectedRoute><Streaks user={user} setUser={setUser} /></ProtectedRoute>} />
           </Routes>
         </main>
 
