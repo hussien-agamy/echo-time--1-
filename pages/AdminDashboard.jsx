@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, 
@@ -30,6 +31,7 @@ const MOCK_STATS = {
   timeEconomyBalance: 450000,
   monthlyRevenue: 12500
 };
+
 
 const TABS = [
   { id: 'overview', name: 'Overview', icon: <LayoutDashboard size={20} /> },
@@ -531,9 +533,15 @@ const UnderConstructionTab = ({ title, icon }) => (
   </div>
 );
 
-// MAIN COMPONENT
-export default function AdminDashboard() {
+export default function AdminDashboard({ user }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const renderTabContent = () => {
     switch (activeTab) {

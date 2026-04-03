@@ -2,6 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Send, Phone, Video, Info, ArrowLeft, Search, CheckCheck, MessageSquare } from 'lucide-react';
+import { api } from '../services/api';
 
 
 
@@ -19,8 +22,34 @@ const Chat = ({ user, threads, setThreads }) => {
   const [reviewText, setReviewText] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const scrollRef = useRef(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   const activeThread = threads.find((t) => t.id === activeThreadId);
+
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (!activeThread?.requestId) return;
+      setIsLoadingMessages(true);
+      try {
+        const response = await api.get(`/chat/${activeThread.requestId}`);
+        const backendMessages = response.data.map(m => ({
+          id: m.id,
+          senderId: m.sender_id,
+          text: m.content,
+          timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+        
+        setThreads(prev => prev.map(t => 
+          t.id === activeThreadId ? { ...t, messages: backendMessages } : t
+        ));
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+    fetchChatHistory();
+  }, [activeThreadId, activeThread?.requestId, setThreads]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -28,22 +57,37 @@ const Chat = ({ user, threads, setThreads }) => {
     }
   }, [activeThread?.messages]);
 
-  const handleSendMessage = () => {
-    if (!inputText.trim() || !activeThreadId) return;
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || !activeThreadId || !activeThread?.requestId) return;
 
-    const newMessage = {
-      id: 'msg_' + Date.now(),
+    const optimisticMsg = {
+      id: 'temp_' + Date.now(),
       senderId: user.id,
       text: inputText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setThreads((prev) => prev.map((t) =>
-    t.id === activeThreadId ?
-    { ...t, messages: [...t.messages, newMessage], lastMessage: inputText } :
-    t
+      t.id === activeThreadId ?
+      { ...t, messages: [...t.messages, optimisticMsg], lastMessage: inputText } : t
     ));
+    
+    const sentText = inputText;
     setInputText('');
+
+    try {
+      await api.post('/chat/send', {
+        taskId: activeThread.requestId,
+        content: sentText
+      });
+    } catch (err) {
+      console.error('Failed to send message:', err);
+      // Remove the optimistic message since it failed to send
+      setThreads((prev) => prev.map((t) =>
+        t.id === activeThreadId ?
+        { ...t, messages: t.messages.filter(m => m.id !== optimisticMsg.id) } : t
+      ));
+    }
   };
 
   return (
@@ -124,7 +168,11 @@ const Chat = ({ user, threads, setThreads }) => {
 
           {/* Messages List */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-blue-50/10">
-            {activeThread?.messages.map((m) =>
+            {isLoadingMessages ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : activeThread?.messages.map((m) =>
           <div key={m.id} className={`flex ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
                 <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
