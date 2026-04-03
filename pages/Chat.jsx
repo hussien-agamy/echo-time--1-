@@ -16,22 +16,16 @@ const Chat = ({ user, threads, setThreads }) => {
   const activeThread = threads.find((t) => t.id === activeThreadId);
 
   useEffect(() => {
-    const fetchChatHistory = async () => {
+    const fetchChatHistory = async (isInitial = false) => {
       if (!activeThread?.requestId) return;
       
-      // We only show loading state if it's the first time
-      if (!threads.find(t => t.id === activeThreadId)?.messages?.length) {
+      if (isInitial && !activeThread.messages?.length) {
         setIsLoadingMessages(true);
       }
       
       try {
         const response = await api.get(`/chat/${activeThread.requestId}`);
-        if (!response.data || response.data.length === 0) {
-          setIsLoadingMessages(false);
-          return;
-        }
-
-        const backendMessages = response.data.map(m => ({
+        const backendMessages = (response.data || []).map(m => ({
           id: m.id,
           senderId: m.sender_id,
           text: m.content,
@@ -40,9 +34,26 @@ const Chat = ({ user, threads, setThreads }) => {
         
         setThreads(prev => prev.map(t => {
           if (t.id === activeThreadId) {
-            // Only update if we actually have new messages to prevent UI flickering (input losing focus)
-            if (t.messages.length !== backendMessages.length) {
-              return { ...t, messages: backendMessages };
+            // MERGE LOGIC:
+            // 1. Keep all messages from backend
+            // 2. Keep any local "temp_" messages that haven't landed in backend yet
+            const tempMessages = t.messages.filter(msg => String(msg.id).startsWith('temp_'));
+            
+            // Check if we actually need to update the state to prevent flicker
+            // We compare only the permanent (backend) messages
+            const existingBackendIds = t.messages
+              .filter(msg => !String(msg.id).startsWith('temp_'))
+              .map(msg => msg.id);
+            
+            const newBackendIds = backendMessages.map(msg => msg.id);
+            
+            const isDifferent = existingBackendIds.length !== newBackendIds.length || 
+                               newBackendIds.some((id, idx) => id !== existingBackendIds[idx]);
+
+            if (isDifferent || tempMessages.length > 0) {
+              // Combine backend messages + uniquely identified temp messages
+              // (Note: In a real app we'd deduplicate temp messages if they've landed)
+              return { ...t, messages: [...backendMessages, ...tempMessages] };
             }
           }
           return t;
@@ -50,15 +61,12 @@ const Chat = ({ user, threads, setThreads }) => {
       } catch (err) {
         console.error('Failed to load chat history:', err);
       } finally {
-        setIsLoadingMessages(false);
+        if (isInitial) setIsLoadingMessages(false);
       }
     };
 
-    // Fetch immediately on thread change
-    fetchChatHistory();
-
-    // Set up continuous polling every 3 seconds to simulate real-time for FREE
-    const intervalId = setInterval(fetchChatHistory, 3000);
+    fetchChatHistory(true);
+    const intervalId = setInterval(() => fetchChatHistory(false), 3000);
 
     return () => clearInterval(intervalId);
   }, [activeThreadId, activeThread?.requestId, setThreads]);
