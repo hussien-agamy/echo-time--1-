@@ -1,15 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, X } from 'lucide-react';
+import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, Phone, Video, X } from 'lucide-react';
 import { api } from '../services/api';
-
-
-
-
-
-
-
 
 const Chat = ({ user, threads, setThreads }) => {
   const [activeThreadId, setActiveThreadId] = useState(threads[0]?.id || null);
@@ -27,7 +19,12 @@ const Chat = ({ user, threads, setThreads }) => {
   useEffect(() => {
     const fetchChatHistory = async () => {
       if (!activeThread?.requestId) return;
-      setIsLoadingMessages(true);
+      
+      // We only show loading state if it's the first time
+      if (!threads.find(t => t.id === activeThreadId)?.messages?.length) {
+        setIsLoadingMessages(true);
+      }
+      
       try {
         const response = await api.get(`/chat/${activeThread.requestId}`);
         const backendMessages = response.data.map(m => ({
@@ -46,7 +43,14 @@ const Chat = ({ user, threads, setThreads }) => {
         setIsLoadingMessages(false);
       }
     };
+
+    // Fetch immediately on thread change
     fetchChatHistory();
+
+    // Set up continuous polling every 3 seconds to simulate real-time for FREE
+    const intervalId = setInterval(fetchChatHistory, 3000);
+
+    return () => clearInterval(intervalId);
   }, [activeThreadId, activeThread?.requestId, setThreads]);
 
   useEffect(() => {
