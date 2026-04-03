@@ -1,5 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Send, Phone, Video, Info, ArrowLeft, Search, CheckCheck, MessageSquare } from 'lucide-react';
 import { api } from '../services/api';
@@ -14,6 +16,11 @@ import { api } from '../services/api';
 const Chat = ({ user, threads, setThreads }) => {
   const [activeThreadId, setActiveThreadId] = useState(threads[0]?.id || null);
   const [inputText, setInputText] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const scrollRef = useRef(null);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
@@ -149,8 +156,12 @@ const Chat = ({ user, threads, setThreads }) => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button className="p-3 text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm bg-white"><Phone size={18} /></button>
-              <button className="p-3 text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm bg-white"><Video size={18} /></button>
+              <button
+                onClick={() => { setShowReviewModal(true); setSubmitted(false); setRating(0); setReviewText(''); }}
+                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl font-black text-sm shadow-lg shadow-emerald-200 transition-all active:scale-95"
+              >
+                <CheckCircle size={16} /> Finish Service
+              </button>
               <button className="p-3 text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm bg-white"><Info size={18} /></button>
             </div>
           </div>
@@ -199,6 +210,121 @@ const Chat = ({ user, threads, setThreads }) => {
               <Send size={24} />
             </button>
           </div>
+
+          {/* Review Modal */}
+          <AnimatePresence>
+            {showReviewModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-blue-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setShowReviewModal(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-[2.5rem] p-8 md:p-10 w-full max-w-md shadow-2xl border border-blue-50 relative"
+                >
+                  <button
+                    onClick={() => setShowReviewModal(false)}
+                    className="absolute top-6 right-6 text-slate-300 hover:text-slate-600 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+
+                  {!submitted ? (
+                    <div className="space-y-6">
+                      <div className="text-center space-y-2">
+                        <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto text-emerald-500 mb-2">
+                          <CheckCircle size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-blue-950 tracking-tight">Finish Service</h3>
+                        <p className="text-sm font-medium text-slate-500">
+                          Rate your experience with <span className="font-bold text-blue-600">{activeThread?.participantName}</span>
+                        </p>
+                      </div>
+
+                      {/* Star Rating */}
+                      <div className="flex justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <motion.button
+                            key={star}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            onClick={() => setRating(star)}
+                            className="p-1 transition-all"
+                          >
+                            <Star
+                              size={36}
+                              className={`transition-colors duration-200 ${
+                                star <= (hoverRating || rating)
+                                  ? 'text-amber-400 fill-amber-400 drop-shadow-md'
+                                  : 'text-slate-200'
+                              }`}
+                            />
+                          </motion.button>
+                        ))}
+                      </div>
+                      <div className="text-center text-xs font-black text-slate-400 uppercase tracking-widest">
+                        {rating === 0 ? 'Tap a star to rate' : ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
+                      </div>
+
+                      {/* Review Input */}
+                      <textarea
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        placeholder="Write a short review (optional)..."
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm font-bold text-blue-900 placeholder:text-slate-300 outline-none focus:border-blue-400 focus:bg-white transition-all resize-none h-28"
+                      />
+
+                      {/* Submit */}
+                      <button
+                        onClick={() => { if (rating > 0) setSubmitted(true); }}
+                        disabled={rating === 0}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-200 transition-all active:scale-95"
+                      >
+                        Submit Review
+                      </button>
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center space-y-4 py-4"
+                    >
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                        className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-500"
+                      >
+                        <CheckCircle size={40} />
+                      </motion.div>
+                      <h3 className="text-2xl font-black text-blue-950 tracking-tight">Thank You!</h3>
+                      <p className="text-sm font-medium text-slate-500">Your review has been submitted successfully.</p>
+                      <div className="flex justify-center gap-1 py-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} size={20} className={s <= rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'} />
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setShowReviewModal(false)}
+                        className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-blue-200 transition-all active:scale-95 hover:bg-blue-700"
+                      >
+                        Done
+                      </button>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </motion.div> :
 
       <div className="flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex flex-col items-center justify-center text-center p-12 space-y-6 shadow-2xl">

@@ -22,6 +22,7 @@ import {
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ProfileStreakWidget, loadStreaks } from '../components/StreakSystem';
 
 
 
@@ -112,6 +113,9 @@ const Profile = ({ user, setUser }) => {
           </div>
         </div>
       </div>
+
+      {/* Streak Widget */}
+      <ProfileStreakWidget streaks={loadStreaks()} />
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-[2.5rem] p-3 border border-blue-50 shadow-xl overflow-x-auto flex justify-center sticky top-24 z-30">
