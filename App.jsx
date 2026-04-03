@@ -212,7 +212,7 @@ const App = () => {
                 <span className="text-white font-black text-2xl tracking-tight">Echo Time</span>
                 <p className="text-sm opacity-80">Building futures, one hour at a time.</p>
               </div>
-              <p className="text-xs">© 2024 Echo Time. All rights reserved.</p>
+              <p className="text-xs">© {new Date().getFullYear()} Echo Time. All rights reserved.</p>
             </div>
           </footer>
         }

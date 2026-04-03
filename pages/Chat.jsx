@@ -27,6 +27,11 @@ const Chat = ({ user, threads, setThreads }) => {
       
       try {
         const response = await api.get(`/chat/${activeThread.requestId}`);
+        if (!response.data || response.data.length === 0) {
+          setIsLoadingMessages(false);
+          return;
+        }
+
         const backendMessages = response.data.map(m => ({
           id: m.id,
           senderId: m.sender_id,
@@ -34,9 +39,15 @@ const Chat = ({ user, threads, setThreads }) => {
           timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }));
         
-        setThreads(prev => prev.map(t => 
-          t.id === activeThreadId ? { ...t, messages: backendMessages } : t
-        ));
+        setThreads(prev => prev.map(t => {
+          if (t.id === activeThreadId) {
+            // Only update if we actually have new messages to prevent UI flickering (input losing focus)
+            if (t.messages.length !== backendMessages.length) {
+              return { ...t, messages: backendMessages };
+            }
+          }
+          return t;
+        }));
       } catch (err) {
         console.error('Failed to load chat history:', err);
       } finally {
@@ -84,10 +95,13 @@ const Chat = ({ user, threads, setThreads }) => {
       });
     } catch (err) {
       console.error('Failed to send message:', err);
-      // Remove the optimistic message since it failed to send
+      // Instead of deleting the message, we mark it as failed so you can see the error
       setThreads((prev) => prev.map((t) =>
         t.id === activeThreadId ?
-        { ...t, messages: t.messages.filter(m => m.id !== optimisticMsg.id) } : t
+        { 
+          ...t, 
+          messages: t.messages.map(m => m.id === optimisticMsg.id ? { ...m, failed: true } : m) 
+        } : t
       ));
     }
   };
@@ -188,7 +202,7 @@ const Chat = ({ user, threads, setThreads }) => {
                   <p className="text-sm font-bold leading-relaxed">{m.text}</p>
                   <div className={`flex items-center gap-1 text-[8px] mt-2 font-black uppercase tracking-widest ${m.senderId === user.id ? 'text-blue-100' : 'text-blue-300'}`}>
                     {m.timestamp}
-                    {m.senderId === user.id && <CheckCheck size={10} />}
+                    {m.failed ? <span className="text-red-300 flex items-center gap-1 ml-2"><X size={10} /> Failed (Backend Rejected)</span> : (m.senderId === user.id && <CheckCheck size={10} />)}
                   </div>
                 </motion.div>
               </div>
