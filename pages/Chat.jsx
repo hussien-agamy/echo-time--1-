@@ -2,8 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, X } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Send, Phone, Video, Info, ArrowLeft, Search, CheckCheck, MessageSquare } from 'lucide-react';
 import { api } from '../services/api';
 
 
