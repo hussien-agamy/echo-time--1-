@@ -1,8 +1,23 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, animate, useMotionValue, useTransform } from 'framer-motion';
 import { Clock, Star, Briefcase, Zap, Shield, Heart, ArrowRight, Sparkles } from 'lucide-react';
+import { api } from '../services/api';
+
+const AnimatedCounter = ({ from = 0, to, duration = 2, suffix = '', isDecimal = false }) => {
+  const count = useMotionValue(from);
+  const rounded = useTransform(count, (latest) => 
+    isDecimal ? latest.toFixed(1) + suffix : Math.floor(latest) + suffix
+  );
+
+  React.useEffect(() => {
+    const controls = animate(count, to, { duration, ease: "easeOut" });
+    return controls.stop;
+  }, [to, count, duration]);
+
+  return <motion.span>{rounded}</motion.span>;
+};
 
 const FeatureCard = ({ icon, title, desc }) =>
 <motion.div
@@ -19,6 +34,20 @@ const FeatureCard = ({ icon, title, desc }) =>
 
 
 const Home = () => {
+  const [activeTasksCount, setActiveTasksCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await api.get('/tasks/open');
+        setActiveTasksCount(res.data.length);
+      } catch (err) {
+        console.error('Failed to fetch tasks for home stats:', err);
+      }
+    };
+    fetchTasks();
+  }, []);
+
   return (
     <div className="space-y-32 py-10">
       <section className="flex flex-col lg:flex-row items-center justify-between gap-16 min-h-[75vh]">
@@ -58,10 +87,10 @@ const Home = () => {
           <div className="bg-white p-10 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] border border-white/40 transform hover:scale-[1.02] transition-transform duration-700">
             <div className="grid grid-cols-2 gap-8">
               {[
-              { icon: <Clock />, val: '12k+', label: 'Hours Traded' },
-              { icon: <Star />, val: '4.9', label: 'User Rating' },
-              { icon: <Briefcase />, val: '800', label: 'Active Pros' },
-              { icon: <Heart />, val: '2k+', label: 'Happy Users' }].
+              { icon: <Clock />, val: <AnimatedCounter to={12} suffix="k+" />, label: 'Hours Traded' },
+              { icon: <Star />, val: <AnimatedCounter to={4.9} isDecimal={true} />, label: 'Platform Rating' },
+              { icon: <Briefcase />, val: <AnimatedCounter to={activeTasksCount} duration={1} />, label: 'Active Tasks' },
+              { icon: <Heart />, val: <AnimatedCounter to={2} suffix="k+" />, label: 'Happy Users' }].
               map((item, i) =>
               <motion.div
                 key={i}
