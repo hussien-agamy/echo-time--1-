@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, Phone, Video, X } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -153,10 +152,7 @@ const Chat = ({ user, threads, setThreads }) => {
 
       {/* Main Chat Area */}
       {activeThreadId ?
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex flex-col shadow-2xl overflow-hidden">
+      <div className="flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex flex-col shadow-2xl overflow-hidden">
         
           {/* Header */}
           <div className="p-4 md:p-6 border-b border-blue-50 flex items-center justify-between bg-white/50 backdrop-blur-md">
@@ -190,9 +186,7 @@ const Chat = ({ user, threads, setThreads }) => {
               </div>
             ) : activeThread?.messages.map((m) =>
           <div key={m.id} className={`flex ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
-                <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+                <div
               className={`max-w-[75%] p-4 rounded-3xl shadow-sm ${
               m.senderId === user.id ?
               'bg-blue-600 text-white rounded-tr-none' :
@@ -204,7 +198,7 @@ const Chat = ({ user, threads, setThreads }) => {
                     {m.timestamp}
                     {m.failed ? <span className="text-red-300 flex items-center gap-1 ml-2"><X size={10} /> Failed (Backend Rejected)</span> : (m.senderId === user.id && <CheckCheck size={10} />)}
                   </div>
-                </motion.div>
+                </div>
               </div>
           )}
           </div>
@@ -228,19 +222,12 @@ const Chat = ({ user, threads, setThreads }) => {
           </div>
 
           {/* Review Modal */}
-          <AnimatePresence>
             {showReviewModal && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <div
                 className="absolute inset-0 bg-blue-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                 onClick={() => setShowReviewModal(false)}
               >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                <div
                   onClick={(e) => e.stopPropagation()}
                   className="bg-white rounded-[2.5rem] p-8 md:p-10 w-full max-w-md shadow-2xl border border-blue-50 relative"
                 >
@@ -266,10 +253,8 @@ const Chat = ({ user, threads, setThreads }) => {
                       {/* Star Rating */}
                       <div className="flex justify-center gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <motion.button
+                          <button
                             key={star}
-                            whileHover={{ scale: 1.2 }}
-                            whileTap={{ scale: 0.9 }}
                             onMouseEnter={() => setHoverRating(star)}
                             onMouseLeave={() => setHoverRating(0)}
                             onClick={() => setRating(star)}
@@ -283,7 +268,7 @@ const Chat = ({ user, threads, setThreads }) => {
                                   : 'text-slate-200'
                               }`}
                             />
-                          </motion.button>
+                          </button>
                         ))}
                       </div>
                       <div className="text-center text-xs font-black text-slate-400 uppercase tracking-widest">
@@ -308,19 +293,14 @@ const Chat = ({ user, threads, setThreads }) => {
                       </button>
                     </div>
                   ) : (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                    <div
                       className="text-center space-y-4 py-4"
                     >
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      <div
                         className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-500"
                       >
                         <CheckCircle size={40} />
-                      </motion.div>
+                      </div>
                       <h3 className="text-2xl font-black text-blue-950 tracking-tight">Thank You!</h3>
                       <p className="text-sm font-medium text-slate-500">Your review has been submitted successfully.</p>
                       <div className="flex justify-center gap-1 py-2">
@@ -334,23 +314,20 @@ const Chat = ({ user, threads, setThreads }) => {
                       >
                         Done
                       </button>
-                    </motion.div>
+                    </div>
                   )}
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             )}
-          </AnimatePresence>
 
-        </motion.div> :
+        </div> :
 
       <div className="flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex flex-col items-center justify-center text-center p-12 space-y-6 shadow-2xl">
-          <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 4, repeat: Infinity }}
+          <div
           className="w-32 h-32 bg-blue-50 text-blue-200 rounded-[3rem] flex items-center justify-center shadow-inner">
           
             <MessageSquare size={64} />
-          </motion.div>
+          </div>
           <div className="space-y-3">
             <h2 className="text-3xl font-black text-blue-900 tracking-tight">Open a Conversation</h2>
             <p className="text-blue-400 font-bold max-w-xs mx-auto leading-relaxed">Choose a chat from the left to start talking about your task and trading time.</p>
