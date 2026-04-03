@@ -37,8 +37,8 @@ const Auth = ({ onLogin }) => {
       setLoading(true);
       try {
         const response = await api.post('/users/login', { email, password });
-        setToken(response.token);
-        onLogin({ ...response.user, isAuthenticated: true, hasCompletedOnboarding: response.is_onboarded });
+        setToken(response.data.token);
+        onLogin({ ...response.data.user, isAuthenticated: true, hasCompletedOnboarding: response.data.is_onboarded });
       } catch (err) {
         setError(err.message || "Failed to login");
       } finally {
@@ -60,8 +60,8 @@ const Auth = ({ onLogin }) => {
       
       // Auto login after register
       const loginRes = await api.post('/users/login', { email, password });
-      setToken(loginRes.token);
-      onLogin({ ...loginRes.user, isAuthenticated: true, hasCompletedOnboarding: false });
+      setToken(loginRes.data.token);
+      onLogin({ ...loginRes.data.user, isAuthenticated: true, hasCompletedOnboarding: false });
     } catch (err) {
       setError(err.message || "Failed to create account");
     } finally {

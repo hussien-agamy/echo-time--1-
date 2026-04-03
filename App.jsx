@@ -46,7 +46,7 @@ const Navbar = ({ user, onLogout }) => {
   { name: 'Messages', path: '/chat', icon: <MessageSquare size={18} /> },
   { name: 'Pricing', path: '/pricing', icon: <CreditCard size={18} /> },
   { name: 'Profile', path: '/profile', icon: <UserIcon size={18} /> },
-  { name: 'Admin', path: '/admin', icon: <Shield size={18} /> }];
+  ...(user.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: <Shield size={18} /> }] : [])];
 
 
   if (!user.isAuthenticated) return null;
@@ -140,8 +140,8 @@ const App = () => {
       const token = getToken();
       if (token && !user.isAuthenticated) {
         try {
-          const userData = await api.get('/users/me');
-          setUser({ ...userData, isAuthenticated: true });
+          const response = await api.get('/users/me');
+          setUser({ ...response.data, isAuthenticated: true, hasCompletedOnboarding: response.data.is_onboarded });
         } catch (error) {
           console.error('Failed to fetch user:', error);
           removeToken();
