@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'https://echo-time-back-end.vercel.app/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://echo-time-back-end.railway.internal/api';
 
 const getHeaders = () => {
     const token = localStorage.getItem('echo_token');
