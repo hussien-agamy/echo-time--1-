@@ -135,18 +135,10 @@ const Navbar = ({ user, onLogout }) => {
 
 const App = () => {
   const [user, setUser] = useState(getStoredUser());
-  const [chatThreads, setChatThreads] = useState(() => {
-    const saved = localStorage.getItem('echo_chat_threads');
-    return saved ? JSON.parse(saved) : [];
-  });
 
   useEffect(() => {
     saveUser(user);
   }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem('echo_chat_threads', JSON.stringify(chatThreads));
-  }, [chatThreads]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -201,12 +193,12 @@ const App = () => {
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/get-started" element={<ProtectedRoute><GetStarted /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute><Community user={user} setUser={setUser} chatThreads={chatThreads} setChatThreads={setChatThreads} /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/request-help" element={<ProtectedRoute><RequestForm user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/offer-help" element={<ProtectedRoute><OfferForm user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><Pricing user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/freelance" element={<ProtectedRoute><FreelanceMode user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/chat" element={user.isAuthenticated ? <Chat user={user} threads={chatThreads} setThreads={setChatThreads} /> : <Navigate to="/auth" />} />
+            <Route path="/chat" element={user.isAuthenticated ? <Chat user={user} /> : <Navigate to="/auth" />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard user={user} /></ProtectedRoute>} />
             <Route path="/streaks" element={<ProtectedRoute><Streaks user={user} setUser={setUser} /></ProtectedRoute>} />
           </Routes>

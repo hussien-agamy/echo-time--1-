@@ -27,7 +27,7 @@ import { Link } from 'react-router-dom';
 
 
 
-const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
+const Community = ({ user, setUser }) => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,14 +39,13 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
     const fetchTasks = async () => {
       try {
         const response = await api.get('/tasks/open');
-        // Map backend fields to frontend expected fields
         const mappedTasks = response.data.map(t => ({
           id: t.id,
           title: t.title,
           description: t.description,
           skillNeeded: Array.isArray(t.required_skills) ? t.required_skills[0] : t.required_skills,
           timeRequired: t.estimated_hours,
-          location: 'online', // Defaulting for now
+          location: 'online',
           requesterId: t.creator_id,
           status: t.status
         }));
@@ -64,41 +63,22 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
     setIsProcessing(req.id);
 
     try {
-      // 1. تسجيل القبول في الـ Backend (هذا يعيّن assigned_to ويحل مشكلة 403)
+      // 1. قبول المهمة في الـ Backend
       await api.patch(`/tasks/${req.id}/accept`);
 
-      // 2. إنشاء thread للشات مرتبط بالـ taskId الحقيقي
-      const newThread = {
-        id: 'chat_' + req.id,
-        requestId: req.id, // هذا هو الرابط الحقيقي مع الـ Backend
-        participantId: req.requesterId,
-        participantName: 'Expert ' + req.requesterId.slice(-4),
-        participantAvatar: `https://picsum.photos/100/100?random=${req.id}`,
-        messages: [{
-          id: 'initial',
-          senderId: 'system',
-          text: `Success! You are now matched for: ${req.title}. Use this chat to plan your meeting.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }],
-        lastMessage: 'You matched!'
-      };
-
-      if (!chatThreads.find((t) => t.id === newThread.id)) {
-        setChatThreads((prev) => [newThread, ...prev]);
-      }
-
-      // 3. حذف المهمة من القائمة العامة
+      // 2. حذف المهمة من القائمة العامة
       const updatedRequests = requests.filter((r) => r.id !== req.id);
       setRequests(updatedRequests);
       saveRequests(updatedRequests);
 
-      // 4. زيادة رصيد الوقت
+      // 3. زيادة رصيد الوقت
       setUser({
         ...user,
         timeBalance: user.timeBalance + req.timeRequired,
         reviewsCount: (user.reviewsCount || 0) + 1
       });
 
+      // 4. الانتقال إلى صفحة الشات (المحادثة ستظهر تلقائياً من الـ Backend)
       navigate('/chat');
     } catch (err) {
       console.error('Failed to accept task:', err);
