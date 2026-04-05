@@ -143,13 +143,8 @@ const Chat = ({ user }) => {
 
     const handleNewMessage = (message) => {
       // The backend message looks like: { id, senderId, text, senderProfile, timestamp }
-      // We need to know which thread it belongs to. I'll assume for now it's the active one
-      // but ideally we check if we should update other threads' lastMessage
-      
       setThreads(prev => prev.map(t => {
-        // If it's a message for the current active thread
         if (activeThread?.requestId && message.taskId === activeThread.requestId) {
-           // Avoid duplicates if we already have it (e.g. from a quick refresh or sync)
            if (t.messages.find(m => m.id === message.id)) return t;
 
            return {
@@ -163,11 +158,25 @@ const Chat = ({ user }) => {
       }));
     };
 
+    const handleTaskCompleted = (data) => {
+      if (activeThread?.requestId && data.taskId === activeThread.requestId) {
+        setThreads(prev => prev.map(t => 
+          t.requestId === data.taskId ? { ...t, taskStatus: 'completed' } : t
+        ));
+        setShowReviewModal(true);
+        setSubmitted(false);
+      }
+    };
+
     socketRef.current.off('receive_message');
     socketRef.current.on('receive_message', handleNewMessage);
+    
+    socketRef.current.off('task_completed');
+    socketRef.current.on('task_completed', handleTaskCompleted);
 
     return () => {
       socketRef.current?.off('receive_message', handleNewMessage);
+      socketRef.current?.off('task_completed', handleTaskCompleted);
     };
   }, [activeThread?.requestId]);
 
@@ -198,6 +207,14 @@ const Chat = ({ user }) => {
     if (!activeThread?.requestId) return;
     try {
       await api.patch(`/tasks/${activeThread.requestId}/complete`);
+      
+      // Notify other user via socket
+      if (socketRef.current) {
+        socketRef.current.emit('finish_task', { taskId: activeThread.requestId, userId: user.id });
+      }
+
+      // Update local state is handled by the socket listener (it will also trigger for this user)
+      // but we can trigger the modal immediately for better UX
       setShowReviewModal(true);
       setSubmitted(false);
       setRating(0);
