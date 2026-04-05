@@ -135,11 +135,18 @@ const Navbar = ({ user, onLogout }) => {
 
 const App = () => {
   const [user, setUser] = useState(getStoredUser());
-  const [chatThreads, setChatThreads] = useState([]);
+  const [chatThreads, setChatThreads] = useState(() => {
+    const saved = localStorage.getItem('echo_chat_threads');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     saveUser(user);
   }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('echo_chat_threads', JSON.stringify(chatThreads));
+  }, [chatThreads]);
 
   useEffect(() => {
     const fetchUser = async () => {
