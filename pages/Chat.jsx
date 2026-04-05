@@ -86,15 +86,15 @@ const Chat = ({ user }) => {
     fetchConversations();
   }, []);
 
-  // 3. Load Message History + Join Socket Room
+  // 3. Load Message History (with 3s secret polling as backup to Socket.io)
   useEffect(() => {
-    const fetchChatHistory = async () => {
+    const fetchChatHistory = async (isInitial = false) => {
       if (!activeThread?.requestId) return;
       
-      setIsLoadingMessages(true);
+      if (isInitial) setIsLoadingMessages(true);
       
-      // Join the socket room for this task
-      if (socketRef.current) {
+      // Join the socket room for this task (on initial join)
+      if (isInitial && socketRef.current) {
         socketRef.current.emit('join_task_chat', activeThread.requestId);
       }
 
@@ -110,18 +110,31 @@ const Chat = ({ user }) => {
         
         setThreads(prev => prev.map(t => {
           if (t.id === activeThreadId) {
-            return { ...t, messages: backendMessages };
+            // Merge logic: keep new messages from backend, avoid duplicates with local/socket messages
+            const existingIds = new Set(t.messages.map(m => m.id));
+            const newMessages = backendMessages.filter(m => !existingIds.has(m.id));
+
+            if (newMessages.length === 0 && !isInitial) return t;
+
+            // If it's a completely fresh load or we have new messages
+            return { 
+              ...t, 
+              messages: isInitial ? backendMessages : [...t.messages, ...newMessages],
+              lastMessage: backendMessages[backendMessages.length - 1]?.text || t.lastMessage
+            };
           }
           return t;
         }));
       } catch (err) {
         console.error('Failed to load chat history:', err);
       } finally {
-        setIsLoadingMessages(false);
+        if (isInitial) setIsLoadingMessages(false);
       }
     };
 
-    fetchChatHistory();
+    fetchChatHistory(true);
+    const interval = setInterval(() => fetchChatHistory(false), 3000);
+    return () => clearInterval(interval);
   }, [activeThreadId, activeThread?.requestId]);
 
   // 4. Handle incoming real-time messages properly
