@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Lock, Zap, Clock, Rocket, AlertTriangle } from 'lucide-react';
+import { Lock, Zap, Clock, Rocket, AlertTriangle, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FreelanceMode = ({ user, setUser }) => {
