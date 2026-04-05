@@ -211,17 +211,11 @@ const Chat = ({ user }) => {
     try {
       await api.patch(`/tasks/${activeThread.requestId}/complete`);
       
-      // Notify other user via socket
+      // Notify both users via socket (including self)
       if (socketRef.current) {
         socketRef.current.emit('finish_task', { taskId: activeThread.requestId, userId: user.id });
       }
-
-      // Update local state is handled by the socket listener (it will also trigger for this user)
-      // but we can trigger the modal immediately for better UX
-      setShowReviewModal(true);
-      setSubmitted(false);
-      setRating(0);
-      setReviewText('');
+      // Note: setShowReviewModal(true) is now handled by handleTaskCompleted for everyone
     } catch (err) {
       console.error('Failed to complete task:', err);
       alert('Failed to complete task: ' + err.message);
