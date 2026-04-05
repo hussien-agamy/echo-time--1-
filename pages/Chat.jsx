@@ -24,11 +24,12 @@ const Chat = ({ user, threads, setThreads }) => {
       }
       
       try {
-        const response = await api.get(`/chat/${activeThread.requestId}`);
+        const response = await api.get(`/chat/history/${activeThread.requestId}`);
         const backendMessages = (response.data || []).map(m => ({
           id: m.id,
           senderId: m.sender_id,
           text: m.content,
+          senderProfile: m.sender, // { full_name, avatar_url }
           timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }));
         
@@ -51,9 +52,18 @@ const Chat = ({ user, threads, setThreads }) => {
                                newBackendIds.some((id, idx) => id !== existingBackendIds[idx]);
 
             if (isDifferent || tempMessages.length > 0) {
-              // Combine backend messages + uniquely identified temp messages
-              // (Note: In a real app we'd deduplicate temp messages if they've landed)
-              return { ...t, messages: [...backendMessages, ...tempMessages] };
+              // Extract participant info from the first message sent by the other person
+              const otherUserMsg = backendMessages.find(m => m.senderId !== user.id);
+              const metadataUpdate = otherUserMsg?.senderProfile ? {
+                participantName: otherUserMsg.senderProfile.full_name,
+                participantAvatar: otherUserMsg.senderProfile.avatar_url
+              } : {};
+
+              return { 
+                ...t, 
+                ...metadataUpdate,
+                messages: [...backendMessages, ...tempMessages] 
+              };
             }
           }
           return t;
@@ -110,6 +120,35 @@ const Chat = ({ user, threads, setThreads }) => {
           messages: t.messages.map(m => m.id === optimisticMsg.id ? { ...m, failed: true } : m) 
         } : t
       ));
+    }
+  };
+
+  const handleFinishService = async () => {
+    if (!activeThread?.requestId) return;
+    try {
+      await api.patch(`/tasks/${activeThread.requestId}/complete`);
+      setShowReviewModal(true);
+      setSubmitted(false);
+      setRating(0);
+      setReviewText('');
+    } catch (err) {
+      console.error('Failed to complete task:', err);
+      alert('Failed to complete task: ' + err.message);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (rating === 0 || !activeThread?.requestId) return;
+    try {
+      await api.post('/reviews', {
+        taskId: activeThread.requestId,
+        rating,
+        comment: reviewText
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Failed to submit review:', err);
+      alert('Failed to submit review: ' + err.message);
     }
   };
 
@@ -177,7 +216,7 @@ const Chat = ({ user, threads, setThreads }) => {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => { setShowReviewModal(true); setSubmitted(false); setRating(0); setReviewText(''); }}
+                onClick={handleFinishService}
                 className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl font-black text-sm shadow-lg shadow-emerald-200 transition-all active:scale-95"
               >
                 <CheckCircle size={16} /> Finish Service
@@ -293,7 +332,7 @@ const Chat = ({ user, threads, setThreads }) => {
 
                       {/* Submit */}
                       <button
-                        onClick={() => { if (rating > 0) setSubmitted(true); }}
+                        onClick={handleSubmitReview}
                         disabled={rating === 0}
                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-200 transition-all active:scale-95"
                       >

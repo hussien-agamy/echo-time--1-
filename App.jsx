@@ -64,7 +64,7 @@ const Navbar = ({ user, onLogout }) => {
       <div className="max-w-8xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <EchoTimeLogo size={40} />
-          <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500 tracking-tight">Echo Time</span>
+          <span className="text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-blue-700 to-blue-500 tracking-tight">Echo Time</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

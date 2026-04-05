@@ -222,7 +222,7 @@ const Onboarding = ({ user, setUser }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className="pt-8 mt-8 border-t border-blue-50"
                 >
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-8 rounded-[2rem] text-white shadow-xl shadow-blue-200/50 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="bg-linear-to-br from-blue-600 to-indigo-600 p-8 rounded-4xl text-white shadow-xl shadow-blue-200/50 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                       <h4 className="text-2xl font-black mb-2">Ready to start?</h4>
                       <p className="text-blue-100 font-medium">We've personalized your Echo Time experience.</p>

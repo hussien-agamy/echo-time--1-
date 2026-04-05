@@ -113,7 +113,7 @@ const FreelanceMode = ({ user, setUser }) => {
           }
         </div>
 
-        <div className="bg-gradient-to-br from-blue-700 to-blue-950 shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] rounded-[4rem] p-12 border border-white/20 text-white space-y-12 h-full flex flex-col relative overflow-hidden group">
+        <div className="bg-linear-to-br from-blue-700 to-blue-950 shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] rounded-[4rem] p-12 border border-white/20 text-white space-y-12 h-full flex flex-col relative overflow-hidden group">
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
           <h3 className="text-4xl font-black tracking-tight relative z-10">Pro Privileges</h3>
           

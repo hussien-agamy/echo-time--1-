@@ -96,7 +96,7 @@ const OverviewTab = () => (
               initial={{ height: 0 }}
               animate={{ height: `${h}%` }}
               transition={{ delay: i * 0.05, duration: 0.5, type: 'spring' }}
-              className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg relative group cursor-pointer"
+              className="w-full bg-linear-to-t from-blue-600 to-blue-400 rounded-t-lg relative group cursor-pointer"
             >
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-blue-900 text-white text-xs font-bold py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                 {h * 15}h
@@ -426,13 +426,13 @@ const MonetizationTab = () => (
         <h3 className="font-black text-xl text-blue-950 mb-6">Revenue Breakdown</h3>
         <div className="h-48 flex items-end justify-center gap-6 pb-4">
           <div className="flex flex-col items-center gap-2">
-            <motion.div initial={{ height: 0 }} animate={{ height: '140px' }} transition={{ duration: 0.8 }} className="w-16 bg-gradient-to-t from-purple-600 to-purple-400 rounded-lg shadow-lg relative group">
+            <motion.div initial={{ height: 0 }} animate={{ height: '140px' }} transition={{ duration: 0.8 }} className="w-16 bg-linear-to-t from-purple-600 to-purple-400 rounded-lg shadow-lg relative group">
               <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-600 opacity-0 group-hover:opacity-100">$8k</span>
             </motion.div>
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Subscriptions</span>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <motion.div initial={{ height: 0 }} animate={{ height: '80px' }} transition={{ duration: 0.8 }} className="w-16 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-lg shadow-lg relative group">
+            <motion.div initial={{ height: 0 }} animate={{ height: '80px' }} transition={{ duration: 0.8 }} className="w-16 bg-linear-to-t from-emerald-600 to-emerald-400 rounded-lg shadow-lg relative group">
               <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-600 opacity-0 group-hover:opacity-100">$4.5k</span>
             </motion.div>
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Commissions</span>

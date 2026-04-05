@@ -99,7 +99,7 @@ export const StreakBadge = ({ streaks, onClick }) => {
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-sm transition-all ${
         maxStreak > 0 
-          ? 'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 text-orange-700 shadow-sm' 
+          ? 'bg-linear-to-r from-orange-50 to-amber-50 border border-orange-200 text-orange-700 shadow-sm' 
           : 'bg-slate-50 border border-slate-200 text-slate-400'
       }`}
     >
@@ -210,9 +210,9 @@ const MilestoneTimeline = ({ currentStreak }) => {
             transition={{ delay: i * 0.1 }}
             className={`flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 ${
               isReached 
-                ? 'bg-gradient-to-r from-emerald-50 to-transparent border border-emerald-100' 
+                ? 'bg-linear-to-r from-emerald-50 to-transparent border border-emerald-100' 
                 : isNext
-                  ? 'bg-gradient-to-r from-amber-50 to-transparent border border-amber-100 animate-pulse'
+                  ? 'bg-linear-to-r from-amber-50 to-transparent border border-amber-100 animate-pulse'
                   : 'bg-slate-50/50 border border-slate-100 opacity-50'
             }`}
           >
@@ -254,9 +254,9 @@ const StreakNotification = ({ notification, onDismiss }) => {
         initial={{ opacity: 0, y: -50, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -50, scale: 0.9 }}
-        className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4"
+        className="fixed top-24 left-1/2 -translate-x-1/2 z-100 w-full max-w-md px-4"
       >
-        <div className={`bg-gradient-to-r ${typeStyles[notification.type] || typeStyles.success} p-5 rounded-2xl shadow-2xl text-white flex items-start gap-4`}>
+        <div className={`bg-linear-to-r ${typeStyles[notification.type] || typeStyles.success} p-5 rounded-2xl shadow-2xl text-white flex items-start gap-4`}>
           <div className="text-3xl shrink-0">{notification.icon || '🔥'}</div>
           <div className="flex-1">
             <h4 className="font-black text-lg">{notification.title}</h4>
@@ -413,7 +413,7 @@ export const StreakDashboard = ({ user, setUser }) => {
       />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-200/50">
+      <div className="bg-linear-to-br from-orange-500 via-amber-500 to-yellow-500 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-200/50">
         <motion.div
           animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
           transition={{ duration: 4, repeat: Infinity }}
@@ -595,7 +595,7 @@ export const ProfileStreakWidget = ({ streaks }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-[2.5rem] p-6 border border-orange-100 shadow-sm"
+      className="bg-linear-to-br from-orange-50 to-amber-50 rounded-[2.5rem] p-6 border border-orange-100 shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

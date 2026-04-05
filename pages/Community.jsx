@@ -270,7 +270,7 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
 
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-blue-700 to-blue-950 rounded-[3rem] p-10 text-white space-y-8 shadow-[0_40px_80px_-15px_rgba(30,64,175,0.4)] relative overflow-hidden group">
+            className="bg-linear-to-br from-blue-700 to-blue-950 rounded-[3rem] p-10 text-white space-y-8 shadow-[0_40px_80px_-15px_rgba(30,64,175,0.4)] relative overflow-hidden group">
             
             <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
             <h3 className="text-2xl font-black flex items-center gap-3 relative z-10 tracking-tight">
