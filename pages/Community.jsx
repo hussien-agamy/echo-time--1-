@@ -60,15 +60,17 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
     fetchTasks();
   }, []);
 
-  const handleHelp = (req) => {
+  const handleHelp = async (req) => {
     setIsProcessing(req.id);
 
-    // Simulate matching delay
-    setTimeout(() => {
-      // Create a new chat thread for the matched task
+    try {
+      // 1. تسجيل القبول في الـ Backend (هذا يعيّن assigned_to ويحل مشكلة 403)
+      await api.patch(`/tasks/${req.id}/accept`);
+
+      // 2. إنشاء thread للشات مرتبط بالـ taskId الحقيقي
       const newThread = {
         id: 'chat_' + req.id,
-        requestId: req.id,
+        requestId: req.id, // هذا هو الرابط الحقيقي مع الـ Backend
         participantId: req.requesterId,
         participantName: 'Expert ' + req.requesterId.slice(-4),
         participantAvatar: `https://picsum.photos/100/100?random=${req.id}`,
@@ -85,22 +87,25 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
         setChatThreads((prev) => [newThread, ...prev]);
       }
 
-      // Remove the request from the public market as it is now matched
+      // 3. حذف المهمة من القائمة العامة
       const updatedRequests = requests.filter((r) => r.id !== req.id);
       setRequests(updatedRequests);
       saveRequests(updatedRequests);
 
-      // Increase user's balance because they are helping
+      // 4. زيادة رصيد الوقت
       setUser({
         ...user,
         timeBalance: user.timeBalance + req.timeRequired,
-        reviewsCount: user.reviewsCount + 1
+        reviewsCount: (user.reviewsCount || 0) + 1
       });
 
-      setIsProcessing(null);
-      // Go to chat page immediately to organize
       navigate('/chat');
-    }, 1200);
+    } catch (err) {
+      console.error('Failed to accept task:', err);
+      alert('Failed to accept task: ' + err.message);
+    } finally {
+      setIsProcessing(null);
+    }
   };
 
   const filteredRequests = requests.filter(req => {

@@ -31,5 +31,17 @@ export const api = {
             throw new Error(error.message || response.statusText);
         }
         return response.json();
+    },
+    async patch(endpoint, data = {}) {
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'PATCH',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(error.message || response.statusText);
+        }
+        return response.json();
     }
 };
