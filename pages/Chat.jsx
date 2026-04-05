@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, Star, X } from 'lucide-react';
-import { api } from '../services/api';
+import { api, API_URL } from '../services/api';
 import { io } from 'socket.io-client';
 
 // Use the same base URL as the API, but strip the /api suffix if it exists
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const SOCKET_URL = API_URL.replace('/api', '');
 
 const Chat = ({ user }) => {
   const [threads, setThreads] = useState([]);
