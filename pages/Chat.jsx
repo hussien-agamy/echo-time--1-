@@ -463,7 +463,7 @@ const Chat = ({ user }) => {
                 </div>
                 <div className="space-y-4">
                   <h2 className="text-4xl font-black text-blue-950 tracking-tight">Review Submitted!</h2>
-                  <p className="text-blue-400 text-xl font-bold">Your feedback helps the RE-GEN community stay trustworthy.</p>
+                  <p className="text-blue-400 text-xl font-bold">Your feedback helps Our community stay trustworthy.</p>
                 </div>
                 <button
                   onClick={() => setShowReviewModal(false)}
