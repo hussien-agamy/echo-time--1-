@@ -59,9 +59,17 @@ const Chat = ({ user, threads, setThreads }) => {
                 participantAvatar: otherUserMsg.senderProfile.avatar_url
               } : {};
 
+              // Update last message info for the sidebar
+              const lastMsg = backendMessages[backendMessages.length - 1];
+              const sidebarUpdate = lastMsg ? {
+                lastMessage: lastMsg.text,
+                lastMessageTime: lastMsg.timestamp
+              } : {};
+
               return { 
                 ...t, 
                 ...metadataUpdate,
+                ...sidebarUpdate,
                 messages: [...backendMessages, ...tempMessages] 
               };
             }
@@ -187,7 +195,7 @@ const Chat = ({ user, threads, setThreads }) => {
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-black text-blue-900 truncate tracking-tight">{t.participantName}</span>
-                    <span className="text-[9px] text-blue-300 font-black uppercase">12:30 PM</span>
+                    <span className="text-[9px] text-blue-300 font-black uppercase">{t.lastMessageTime || ''}</span>
                   </div>
                   <p className="text-xs text-blue-400 truncate font-bold">{t.lastMessage || 'Click to chat'}</p>
                 </div>
@@ -231,23 +239,49 @@ const Chat = ({ user, threads, setThreads }) => {
               <div className="flex justify-center items-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
-            ) : activeThread?.messages.map((m) =>
-          <div key={m.id} className={`flex ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
-                <div
-              className={`max-w-[75%] p-4 rounded-3xl shadow-sm ${
-              m.senderId === user.id ?
-              'bg-blue-600 text-white rounded-tr-none' :
-              'bg-white text-blue-900 border border-blue-100 rounded-tl-none'}`
-              }>
-              
-                  <p className="text-sm font-bold leading-relaxed">{m.text}</p>
-                  <div className={`flex items-center gap-1 text-[8px] mt-2 font-black uppercase tracking-widest ${m.senderId === user.id ? 'text-blue-100' : 'text-blue-300'}`}>
-                    {m.timestamp}
-                    {m.failed ? <span className="text-red-300 flex items-center gap-1 ml-2"><X size={10} /> Failed (Backend Rejected)</span> : (m.senderId === user.id && <CheckCheck size={10} />)}
+            ) : activeThread?.messages.map((m) => {
+              // System messages
+              if (m.senderId === 'system') {
+                return (
+                  <div key={m.id} className="flex justify-center">
+                    <div className="bg-blue-50 text-blue-500 px-5 py-2 rounded-2xl text-xs font-bold text-center max-w-[80%]">
+                      {m.text}
+                    </div>
+                  </div>
+                );
+              }
+
+              const isMe = m.senderId === user.id;
+              const senderName = isMe ? 'You' : (m.senderProfile?.full_name || activeThread?.participantName || 'User');
+
+              return (
+                <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} gap-2`}>
+                  {!isMe && (
+                    <img
+                      src={m.senderProfile?.avatar_url || activeThread?.participantAvatar}
+                      className="w-8 h-8 rounded-xl object-cover border border-blue-100 self-end"
+                      alt=""
+                    />
+                  )}
+                  <div className={`max-w-[70%]`}>
+                    <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isMe ? 'text-right text-blue-300' : 'text-blue-400'}`}>
+                      {senderName}
+                    </div>
+                    <div className={`p-4 rounded-3xl shadow-sm ${
+                      isMe
+                        ? 'bg-blue-600 text-white rounded-tr-none'
+                        : 'bg-white text-blue-900 border border-blue-100 rounded-tl-none'
+                    }`}>
+                      <p className="text-sm font-bold leading-relaxed">{m.text}</p>
+                      <div className={`flex items-center gap-1 text-[8px] mt-2 font-black uppercase tracking-widest ${isMe ? 'text-blue-100' : 'text-blue-300'}`}>
+                        {m.timestamp}
+                        {m.failed ? <span className="text-red-300 flex items-center gap-1 ml-2"><X size={10} /> Failed</span> : (isMe && <CheckCheck size={10} />)}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-          )}
+              );
+            })}
           </div>
 
           {/* Input Area */}
