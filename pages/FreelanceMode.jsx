@@ -81,14 +81,14 @@ const FreelanceMode = ({ user, setUser }) => {
           
           <div className="space-y-6 flex-1">
             <ConditionItem label="Help Count" progress={isUnlocked ? 15 : 8} target={10} done={isUnlocked} />
-            <ConditionItem label="Rating Score" progress={user.ratingAvg} target={4.5} done={user.ratingAvg >= 4.5} />
-            <ConditionItem label="Special Badges" progress={user.badges.filter((b) => b.unlocked).length} target={3} done={user.badges.filter((b) => b.unlocked).length >= 3} />
+            <ConditionItem label="Rating Score" progress={user.ratingAvg || 0} target={4.5} done={user.ratingAvg >= 4.5} />
+            <ConditionItem label="Special Badges" progress={(user.badges || []).filter((b) => b.unlocked).length} target={3} done={(user.badges || []).filter((b) => b.unlocked).length >= 3} />
           </div>
 
           {!isUnlocked ?
           <div className="pt-10 border-t border-blue-50 flex flex-col items-center gap-8">
               <div className="text-center space-y-2">
-                <div className="text-7xl font-black text-blue-600 tracking-tighter">{(user.badges.filter((b) => b.unlocked).length / 3 * 100).toFixed(0)}%</div>
+                <div className="text-7xl font-black text-blue-600 tracking-tighter">{((user.badges || []).filter((b) => b.unlocked).length / 3 * 100).toFixed(0)}%</div>
                 <div className="text-[10px] font-black text-blue-300 uppercase tracking-widest">To Professional Unlock</div>
               </div>
               <button

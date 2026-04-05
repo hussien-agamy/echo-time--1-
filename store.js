@@ -6,7 +6,10 @@ const INITIAL_USER = {
   isAuthenticated: false,
   isVerified: false,
   timeBalance: 0,
-  hasCompletedOnboarding: false
+  hasCompletedOnboarding: false,
+  badges: [],
+  ratingAvg: 0,
+  freelanceUnlocked: false
 };
 
 export const getToken = () => localStorage.getItem('echo_token');
