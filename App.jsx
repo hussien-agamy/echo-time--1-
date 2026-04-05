@@ -199,7 +199,7 @@ const App = () => {
             <Route path="/offer-help" element={<ProtectedRoute><OfferForm user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><Pricing user={user} setUser={setUser} /></ProtectedRoute>} />
             <Route path="/freelance" element={<ProtectedRoute><FreelanceMode user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/chat" element={<ProtectedRoute><Chat user={user} threads={chatThreads} setThreads={setChatThreads} /></ProtectedRoute>} />
+            <Route path="/chat" element={user.isAuthenticated ? <Chat user={user} threads={chatThreads} setThreads={setChatThreads} /> : <Navigate to="/auth" />} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard user={user} /></ProtectedRoute>} />
             <Route path="/streaks" element={<ProtectedRoute><Streaks user={user} setUser={setUser} /></ProtectedRoute>} />
           </Routes>
