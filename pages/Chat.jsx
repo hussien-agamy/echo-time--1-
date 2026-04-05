@@ -142,9 +142,10 @@ const Chat = ({ user }) => {
     if (!socketRef.current) return;
 
     const handleNewMessage = (message) => {
-      // The backend message looks like: { id, senderId, text, senderProfile, timestamp }
+      // The backend message now includes taskId
       setThreads(prev => prev.map(t => {
-        if (activeThread?.requestId && message.taskId === activeThread.requestId) {
+        // Match the message to the correct thread
+        if (t.requestId === message.taskId) {
            if (t.messages.find(m => m.id === message.id)) return t;
 
            return {
@@ -159,9 +160,10 @@ const Chat = ({ user }) => {
     };
 
     const handleTaskCompleted = (data) => {
-      if (activeThread?.requestId && data.taskId === activeThread.requestId) {
+      // Use String() for safe comparison
+      if (activeThread?.requestId && String(data.taskId) === String(activeThread.requestId)) {
         setThreads(prev => prev.map(t => 
-          t.requestId === data.taskId ? { ...t, taskStatus: 'completed' } : t
+          String(t.requestId) === String(data.taskId) ? { ...t, taskStatus: 'completed' } : t
         ));
         setShowReviewModal(true);
         setSubmitted(false);
@@ -387,6 +389,98 @@ const Chat = ({ user }) => {
           </div>
         </div>
       }
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-blue-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] border border-blue-50 relative overflow-hidden"
+          >
+            {/* Background pattern */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50" />
+            
+            <button 
+              onClick={() => setShowReviewModal(false)}
+              className="absolute top-6 right-6 p-3 hover:bg-blue-50 rounded-2xl transition-all text-blue-300 hover:text-blue-600"
+            >
+              <X size={24} />
+            </button>
+
+            {!submitted ? (
+              <div className="space-y-8 relative z-10">
+                <div className="text-center space-y-3">
+                  <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner mb-4">
+                    <CheckCircle size={40} />
+                  </div>
+                  <h2 className="text-4xl font-black text-blue-950 tracking-tight">Mission Accomplished!</h2>
+                  <p className="text-blue-400 font-bold">How was your experience working with {activeThread?.participantName}?</p>
+                </div>
+
+                <div className="flex justify-center gap-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="transition-all hover:scale-125 active:scale-95"
+                    >
+                      <Star
+                        size={48}
+                        className={`transition-colors duration-300 ${
+                          star <= (hoverRating || rating)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-blue-100'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Share some feedback (optional)..."
+                    className="w-full bg-blue-50/50 rounded-3xl p-6 h-32 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-blue-900 placeholder:text-blue-300 resize-none"
+                  />
+                  
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={rating === 0}
+                    className={`w-full py-6 rounded-[2rem] font-black text-2xl transition-all shadow-2xl flex items-center justify-center gap-3 ${
+                      rating > 0 
+                        ? 'bg-blue-600 text-white shadow-blue-200 hover:scale-[1.02] active:scale-95' 
+                        : 'bg-blue-100 text-blue-300 cursor-not-allowed shadow-none'
+                    }`}
+                  >
+                    Post Review
+                    <Send size={24} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 space-y-8 animate-in fade-in zoom-in duration-500">
+                <div className="w-24 h-24 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-200 animate-bounce">
+                  <CheckCircle size={48} />
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-4xl font-black text-blue-950 tracking-tight">Review Submitted!</h2>
+                  <p className="text-blue-400 text-xl font-bold">Your feedback helps the RE-GEN community stay trustworthy.</p>
+                </div>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="bg-blue-900 text-white px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-black transition-all shadow-xl"
+                >
+                  Back to Chat
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>);
 };
 
