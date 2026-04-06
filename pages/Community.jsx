@@ -32,6 +32,7 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(null);
 
   React.useEffect(() => {
@@ -115,6 +116,13 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
     }, 1200);
   };
 
+  const filteredRequests = requests.filter(req => {
+    const matchesFilter = filter === 'all' ? true : req.location.toLowerCase() === filter;
+    const matchesSearch = (req.skillNeeded || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          req.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <div className="space-y-12 py-6">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
@@ -135,6 +143,8 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-blue-300" size={18} />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search skills (e.g. Logo, Coding)..."
               className="w-full bg-white rounded-2xl pl-12 pr-6 py-5 shadow-2xl border-none outline-none text-blue-900 font-black focus:ring-4 focus:ring-blue-400 transition-all placeholder:text-blue-200" />
             
@@ -170,13 +180,13 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
               </div>
             ) : (
               <AnimatePresence mode="popLayout">
-                {requests.length === 0 ? (
+                {filteredRequests.length === 0 ? (
                   <div className="bg-white/5 border border-white/10 rounded-[3rem] p-20 text-center space-y-4">
-                    <h3 className="text-2xl font-black text-white opacity-50">No tasks available right now.</h3>
-                    <p className="text-blue-200">Be the first to post a task!</p>
+                    <h3 className="text-2xl font-black text-white opacity-50">No tasks found.</h3>
+                    <p className="text-blue-200">Try adjusting your filters or search query!</p>
                   </div>
                 ) : (
-                  requests.map((req) =>
+                  filteredRequests.map((req) =>
                   <motion.div
                     key={req.id}
                     layout
@@ -203,6 +213,11 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
                               {req.location === 'online' ? <Globe size={14} /> : <MapPin size={14} />}
                               {req.location}
                             </span>
+                            {req.requesterId === user.id && (
+                              <span className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
+                                Your Task
+                              </span>
+                            )}
                           </div>
                           <h3 className="text-3xl font-black text-blue-900 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{req.title}</h3>
                           <p className="text-blue-800/60 font-medium leading-relaxed text-lg">{req.description}</p>
@@ -221,13 +236,20 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
                         </div>
                         
                         <div className="flex flex-row md:flex-col justify-end gap-4 min-w-[180px]">
-                          <button
-                          onClick={() => handleHelp(req)}
-                          className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 group active:scale-95">
-                          
-                            Help Now
-                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                          </button>
+                          {req.requesterId === user.id ? (
+                            <button
+                              disabled
+                              className="flex-1 md:flex-none border-2 border-emerald-200 bg-emerald-50 text-emerald-600 px-8 py-5 rounded-[2rem] font-black text-lg shadow-sm flex items-center justify-center gap-3 cursor-not-allowed">
+                              Your Task
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleHelp(req)}
+                              className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                              Help Now
+                              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -271,7 +293,7 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
             <div className="space-y-5 relative z-10">
               <div className="flex justify-between items-center text-sm font-black uppercase tracking-widest border-b border-white/10 pb-4">
                 <span className="opacity-70">Active Tasks</span>
-                <span className="text-blue-200">2</span>
+                <span className="text-blue-200">{requests.length}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black uppercase tracking-widest">
                 <span className="opacity-70">Hours Collected</span>
