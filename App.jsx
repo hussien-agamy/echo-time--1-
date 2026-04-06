@@ -176,7 +176,6 @@ const App = () => {
 
   const ProtectedRoute = ({ children }) => {
     if (!user.isAuthenticated) return <Navigate to="/auth" />;
-    if (user.hasCompletedOnboarding === false) return <Navigate to="/onboarding" />;
     return <PageWrapper>{children}</PageWrapper>;
   };
 
@@ -187,8 +186,7 @@ const App = () => {
         
         <main className={`flex-1 ${user.isAuthenticated ? 'mt-20' : ''} px-4 md:px-8 max-w-7xl mx-auto w-full py-8`}>
           <Routes>
-            <Route path="/auth" element={!user.isAuthenticated ? <Auth onLogin={setUser} /> : (user.hasCompletedOnboarding === false ? <Navigate to="/onboarding" /> : <Navigate to="/" />)} />
-            <Route path="/onboarding" element={user.isAuthenticated && user.hasCompletedOnboarding === false ? <PageWrapper><Onboarding user={user} setUser={setUser} /></PageWrapper> : <Navigate to="/" />} />
+            <Route path="/auth" element={!user.isAuthenticated ? <Auth onLogin={setUser} /> : <Navigate to="/" />} />
             
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/get-started" element={<ProtectedRoute><GetStarted /></ProtectedRoute>} />

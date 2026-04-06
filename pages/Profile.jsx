@@ -34,6 +34,8 @@ const Profile = ({ user, setUser }) => {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [tempBio, setTempBio] = useState(user.bio);
   const [newSkill, setNewSkill] = useState('');
+  const [history, setHistory] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const tabs = [
   { id: 'about', label: 'About', icon: <UserIcon size={18} /> },
@@ -68,6 +70,15 @@ const Profile = ({ user, setUser }) => {
     }
   };
 
+  const getAboutData = async () => {
+    try {
+      const response = await api.get('/users/me');
+      setUser(response.data);
+    } catch (error) {
+      alert("Failed to get about data: " + error.message);
+    }
+  }
+  
   const removeSkill = async (skillToRemove) => {
     const updatedSkills = user.skills.filter((s) => s !== skillToRemove);
     try {
@@ -78,13 +89,31 @@ const Profile = ({ user, setUser }) => {
     }
   };
 
+  const fetchHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const response = await api.get('/tasks/history');
+      setHistory(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchHistory();
+    }
+  }, [activeTab]);
+
   return (
     <div className="max-w-6xl mx-auto py-12 space-y-12">
       {/* Profile Header */}
       <div className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.1)] rounded-[4rem] p-10 md:p-12 flex flex-col lg:flex-row items-center gap-12 border border-blue-50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-32 h-32 bg-blue-50/50 blur-3xl rounded-full"></div>
         <div className="relative group">
-          <img src={user.avatar} alt={user.username} className="w-52 h-52 rounded-[3.5rem] object-cover border-8 border-white shadow-2xl group-hover:scale-105 transition-transform duration-500" />
+          <img src={user.avatar_url} alt={user.username} className="w-52 h-52 rounded-[3.5rem] object-cover border-8 border-white shadow-2xl group-hover:scale-105 transition-transform duration-500" />
           <div className="absolute -bottom-3 -right-3 bg-blue-600 w-16 h-16 rounded-3xl border-8 border-white flex items-center justify-center shadow-xl">
              <Star size={24} className="text-white fill-current" />
           </div>
@@ -92,20 +121,20 @@ const Profile = ({ user, setUser }) => {
         
         <div className="flex-1 text-center lg:text-left space-y-6">
           <div className="space-y-3">
-            <h1 className="text-5xl font-black text-blue-900 tracking-tighter">{user.username}</h1>
+            <h1 className="text-5xl font-black text-blue-900 tracking-tighter">{user.full_name}</h1>
+            <h3 className="text-3xl font-black text-blue-400 tracking-tighter">@{user.username}</h3>
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5">
               <div className="flex items-center gap-2 text-blue-600 font-black bg-blue-50 px-6 py-2.5 rounded-2xl shadow-sm border border-blue-100">
                 <Star size={20} fill="currentColor" />
-                {user.ratingAvg} <span className="text-blue-400 font-bold text-xs uppercase ml-1">Rating</span>
+                {user.ratingAvg ?? 0.0} <span className="text-blue-400 font-bold text-xs uppercase ml-1">Rating</span>
               </div>
               <div className="flex items-center gap-2 text-blue-800 font-black bg-blue-50 px-6 py-2.5 rounded-2xl shadow-sm border border-blue-100">
                 <Clock size={20} />
-                {user.timeBalance}h <span className="text-blue-400 font-bold text-xs uppercase ml-1">Balance</span>
+                {user.timeBalance ?? 0.0}h <span className="text-blue-400 font-bold text-xs uppercase ml-1">Balance</span>
               </div>
             </div>
           </div>
           <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-[1.8rem] font-black text-lg shadow-xl shadow-blue-100 transition-all active:scale-95">Settings</button>
             <button className="bg-white border-2 border-blue-50 text-blue-400 px-8 py-4 rounded-[1.8rem] font-black text-lg transition-all flex items-center gap-3 hover:bg-blue-50 hover:text-blue-600 active:scale-95">
               <LogOut size={20} />
               Sign Out
@@ -197,10 +226,10 @@ const Profile = ({ user, setUser }) => {
               )}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-10 border-t border-blue-50">
                 {[
-              { label: 'Helped', val: '15', icon: <Users size={20} /> },
-              { label: 'Tasks', val: '8', icon: <TrendingUp size={20} /> },
-              { label: 'Badges', val: '12', icon: <Award size={20} /> },
-              { label: 'Certs', val: '4', icon: <FileCheck size={20} /> }].
+              { label: 'Helped', val: user.helps_count ?? 0, icon: <Users size={20} /> },
+              { label: 'Tasks', val: user.tasks_count ?? 0, icon: <TrendingUp size={20} /> },
+              { label: 'Badges', val: user.badges?.length ?? 0, icon: <Award size={20} /> },
+              { label: 'Certs', val: '0', icon: <FileCheck size={20} /> }].
               map((stat, i) =>
               <div key={i} className="text-center p-8 bg-blue-50 rounded-[2.5rem] space-y-2 border border-blue-100 hover:bg-white hover:shadow-xl transition-all duration-300">
                     <div className="text-blue-400 mb-2 flex justify-center">{stat.icon}</div>
@@ -288,34 +317,51 @@ const Profile = ({ user, setUser }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
             className="space-y-8">
-            
               <h3 className="text-4xl font-black text-blue-900 tracking-tight">Timeline</h3>
               <div className="space-y-6">
-                {[
-              { title: 'Excel Training Session', type: 'Helping', date: 'Yesterday', status: 'Done', time: '+2h', icon: <CheckCircle className="text-blue-600" /> },
-              { title: 'Logo Design Request', type: 'Need Help', date: '3 days ago', status: 'Done', time: '-1.5h', icon: <Clock className="text-blue-600" /> },
-              { title: 'React Hooks Class', type: 'Helping', date: 'Last Week', status: 'Done', time: '+4h', icon: <Award className="text-blue-600" /> }].
-              map((item, idx) =>
-              <div key={idx} className="flex flex-col sm:flex-row items-center justify-between p-8 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 hover:bg-white hover:shadow-2xl transition-all duration-300 gap-8">
-                    <div className="flex items-center gap-6 w-full">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg ${
-                  item.type === 'Helping' ? 'bg-blue-600 text-white shadow-blue-100' : 'bg-white text-blue-600'}`
-                  }>
-                        {item.type[0]}
-                      </div>
-                      <div>
-                        <h4 className="text-2xl font-black text-blue-900 tracking-tight">{item.title}</h4>
-                        <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mt-1">{item.date} • <span className="text-blue-600">{item.type}</span></div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end">
-                      <span className="bg-white px-4 py-1.5 rounded-xl text-[9px] font-black text-blue-400 uppercase tracking-widest shadow-sm border border-blue-100">{item.status}</span>
-                      <span className={`text-4xl font-black tracking-tighter ${item.time.startsWith('+') ? 'text-blue-600' : 'text-blue-400'}`}>
-                        {item.time}
-                      </span>
-                    </div>
+                {isLoadingHistory ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-blue-400 font-black uppercase tracking-widest text-xs">Loading Timeline...</p>
                   </div>
-              )}
+                ) : history.length === 0 ? (
+                  <div className="text-center py-20 bg-blue-50/30 rounded-[3rem] border border-dashed border-blue-100">
+                    <p className="text-blue-400 font-bold text-xl">No task history found.</p>
+                  </div>
+                ) : (
+                  history.map((item, idx) => {
+                    const isHelping = item.assigned_to === user.id;
+                    const typeLabel = isHelping ? 'Helping' : 'Need Help';
+                    const timePrefix = isHelping ? '+' : '-';
+                    const dateLabel = new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+                    return (
+                      <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between p-8 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 hover:bg-white hover:shadow-2xl transition-all duration-300 gap-8">
+                        <div className="flex items-center gap-6 w-full">
+                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg ${
+                            isHelping ? 'bg-blue-600 text-white shadow-blue-100' : 'bg-white text-blue-600'
+                          }`}>
+                            {typeLabel[0]}
+                          </div>
+                          <div>
+                            <h4 className="text-2xl font-black text-blue-900 tracking-tight">{item.title}</h4>
+                            <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mt-1">{dateLabel} • <span className="text-blue-600">{typeLabel}</span></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end">
+                          <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm border ${
+                            item.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-blue-400 border-blue-100'
+                          }`}>
+                            {item.status}
+                          </span>
+                          <span className={`text-4xl font-black tracking-tighter ${isHelping ? 'text-blue-600' : 'text-blue-400'}`}>
+                            {timePrefix}{item.estimated_hours}h
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </motion.div>
           }

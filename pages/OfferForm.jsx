@@ -26,6 +26,12 @@ const OfferForm = ({ user, setUser }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!user.is_verified) {
+      alert("Verification Pending: Your identity documents are being reviewed. You can explore the community, but you'll be able to post skills once your account is verified by an admin.");
+      return;
+    }
+
     if (formData.skillsOffered.length === 0) {
       alert("Please select at least one skill to offer!");
       return;

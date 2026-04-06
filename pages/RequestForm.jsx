@@ -31,6 +31,11 @@ const RequestForm = ({ user, setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!user.is_verified) {
+      alert("Your account is currently pending verification. You'll be able to post requests once an administrator approves your identity documents.");
+      return;
+    }
+
     if (user.timeBalance < formData.timeRequired) {
       alert("Insufficient time balance! You need to help others or purchase more hours.");
       return;
