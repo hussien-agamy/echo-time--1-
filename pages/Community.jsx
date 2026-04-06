@@ -65,22 +65,35 @@ const Community = ({ user, setUser, chatThreads, setChatThreads }) => {
     // Simulate matching delay
     setTimeout(() => {
       // Create a new chat thread for the matched task
-      const newThread = {
-        id: 'chat_' + req.id,
-        requestId: req.id,
-        participantId: req.requesterId,
-        participantName: 'Expert ' + req.requesterId.slice(-4),
-        participantAvatar: `https://picsum.photos/100/100?random=${req.id}`,
-        messages: [{
-          id: 'initial',
-          senderId: 'system',
-          text: `Success! You are now matched for: ${req.title}. Use this chat to plan your meeting.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }],
-        lastMessage: 'You matched!'
+      const threadId = 'chat_' + req.requesterId;
+      const existingThread = chatThreads.find((t) => t.id === threadId);
+
+      const newMessage = {
+        id: 'initial_' + Date.now(),
+        senderId: 'system',
+        text: `Success! You are now matched for: ${req.title}. Use this chat to plan your meeting.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
-      if (!chatThreads.find((t) => t.id === newThread.id)) {
+      if (existingThread) {
+        setChatThreads((prev) => prev.map((t) =>
+        t.id === threadId ?
+        {
+          ...t,
+          messages: [...t.messages, newMessage],
+          lastMessage: `New Match: ${req.title}`
+        } :
+        t
+        ));
+      } else {
+        const newThread = {
+          id: threadId,
+          participantId: req.requesterId,
+          participantName: 'Expert ' + req.requesterId.slice(-4),
+          participantAvatar: `https://picsum.photos/100/100?random=${req.id}`,
+          messages: [newMessage],
+          lastMessage: 'You matched!'
+        };
         setChatThreads((prev) => [newThread, ...prev]);
       }
 
