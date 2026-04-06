@@ -78,7 +78,7 @@ const Auth = ({ onLogin }) => {
       }
       return true;
     } catch (err) {
-      setError("Failed to validate username.");
+      setError(err.message || "Failed to validate username.");
       return false;
     } finally {
       setLoading(false);
