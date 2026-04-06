@@ -12,6 +12,7 @@ const Chat = ({ user }) => {
   const [activeThreadId, setActiveThreadId] = useState(null);
   const [inputText, setInputText] = useState('');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -237,6 +238,23 @@ const Chat = ({ user }) => {
     }
   };
 
+  const handleDeleteChat = async () => {
+    if (!activeThread?.requestId) return;
+    if (!window.confirm('Are you sure you want to delete this chat history? This action cannot be undone.')) return;
+
+    try {
+      await api.delete(`/chat/conversation/${activeThread.requestId}`);
+      
+      // Remove thread from list
+      setThreads(prev => prev.filter(t => t.requestId !== activeThread.requestId));
+      setActiveThreadId(null);
+      setShowSettingsModal(false);
+    } catch (err) {
+      console.error('Failed to delete chat:', err);
+      alert('Failed to delete chat: ' + err.message);
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-140px)] flex gap-4 overflow-hidden">
       {/* Sidebar - Same as before */}
@@ -312,7 +330,12 @@ const Chat = ({ user }) => {
                   <CheckCircle size={16} /> Finish Service
                 </button>
               )}
-              <button className="p-3 text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm bg-white"><Info size={18} /></button>
+              <button 
+                onClick={() => setShowSettingsModal(true)}
+                className="p-3 text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm bg-white"
+              >
+                <Info size={18} />
+              </button>
             </div>
           </div>
 
@@ -473,6 +496,71 @@ const Chat = ({ user }) => {
                 </button>
               </div>
             )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-blue-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] border border-blue-50 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50" />
+            
+            <button 
+              onClick={() => setShowSettingsModal(false)}
+              className="absolute top-6 right-6 p-3 hover:bg-blue-50 rounded-2xl transition-all text-blue-300 hover:text-blue-600"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-8 relative z-10">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner mb-4">
+                  <Info size={32} />
+                </div>
+                <h2 className="text-3xl font-black text-blue-950 tracking-tight">Chat Settings</h2>
+                <p className="text-blue-400 font-bold">Managing conversation for "{activeThread?.taskTitle || 'Task'}"</p>
+              </div>
+
+              <div className="bg-blue-50/50 rounded-3xl p-6 space-y-4">
+                <div className="flex justify-between items-center pb-4 border-b border-blue-100">
+                  <span className="text-sm font-black text-blue-900 uppercase tracking-wider">Participant</span>
+                  <span className="text-sm font-bold text-blue-600">{activeThread?.participantName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-black text-blue-900 uppercase tracking-wider">Task Status</span>
+                  <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                    activeThread?.taskStatus === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                  }`}>
+                    {activeThread?.taskStatus}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4">
+                <h3 className="text-xs font-black text-red-500 uppercase tracking-[0.2em] px-2">Danger Zone</h3>
+                <button
+                  onClick={handleDeleteChat}
+                  className="w-full py-5 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 font-black text-lg transition-all flex items-center justify-center gap-3 border border-red-100 shadow-sm"
+                >
+                  Delete Chat History
+                </button>
+                <p className="text-[10px] text-center text-blue-300 font-bold px-8">
+                  Deleting chat history will permanently remove all messages for both participants. This cannot be undone.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="w-full py-5 rounded-[2rem] bg-blue-900 text-white font-black text-lg hover:bg-black transition-all shadow-xl"
+              >
+                Close Settings
+              </button>
+            </div>
           </motion.div>
         </div>
       )}
