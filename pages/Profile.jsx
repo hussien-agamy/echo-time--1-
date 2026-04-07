@@ -146,7 +146,7 @@ const Profile = ({ user, setUser }) => {
                 <AlertTriangle size={20} />
                 Account Suspended
               </div>
-            ) : user.is_verified ? (
+            ) : user.status === 'verified' ? (
               <div className="flex items-center gap-2 text-emerald-600 font-black bg-emerald-50 px-6 py-2.5 rounded-2xl shadow-sm border border-emerald-100">
                 <ShieldCheck size={20} />
                 Verified Account

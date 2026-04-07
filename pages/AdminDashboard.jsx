@@ -24,7 +24,16 @@ import {
   Ban,
   ShieldCheck,
   UserPlus,
-  RefreshCcw
+  RefreshCcw,
+  X,
+  Mail,
+  User as UserIcon,
+  MapPin,
+  Calendar,
+  ExternalLink,
+  ChevronRight,
+  CheckCircle,
+  ShieldHalf
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useToast } from '../components/ToastContext';
@@ -63,17 +72,46 @@ const StatCard = ({ title, value, icon, trend, trendValue, color, suffix = '', i
   </motion.div>
 );
 
-const UserRow = ({ user, onUpdateStatus }) => {
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const handleAction = async (updates) => {
-    setIsUpdating(true);
-    await onUpdateStatus(user.id, updates);
-    setIsUpdating(false);
+const StatusBadge = ({ status }) => {
+  const configs = {
+    verified: { 
+      bg: 'bg-emerald-100', 
+      text: 'text-emerald-700', 
+      border: 'border-emerald-200', 
+      icon: <BadgeCheck size={12} />, 
+      label: 'Verified' 
+    },
+    pending: { 
+      bg: 'bg-amber-100', 
+      text: 'text-amber-700', 
+      border: 'border-amber-200', 
+      icon: <Clock size={12} />, 
+      label: 'Pending' 
+    },
+    banned: { 
+      bg: 'bg-red-100', 
+      text: 'text-red-700', 
+      border: 'border-red-200', 
+      icon: <Ban size={12} />, 
+      label: 'Banned' 
+    }
   };
 
+  const config = configs[status] || configs.pending;
+
   return (
-    <tr className="group hover:bg-blue-50/50 transition-colors border-b border-blue-50/50 last:border-0">
+    <span className={`${config.bg} ${config.text} ${config.border} text-[10px] font-black px-3 py-1 rounded-lg flex items-center gap-1 uppercase tracking-widest border shadow-sm`}>
+      {config.icon} {config.label}
+    </span>
+  );
+};
+
+const UserRow = ({ user, onUpdateStatus, onViewDetails }) => {
+  return (
+    <tr 
+      onClick={() => onViewDetails(user)}
+      className="group hover:bg-blue-50/50 transition-colors border-b border-blue-50/50 last:border-0 cursor-pointer"
+    >
       <td className="py-5 pl-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center font-black text-blue-600 overflow-hidden shadow-inner border-2 border-white">
@@ -92,20 +130,7 @@ const UserRow = ({ user, onUpdateStatus }) => {
       <td className="py-5 font-black text-blue-600">{user.time_balance}h</td>
       <td className="py-5">
         <div className="flex flex-wrap gap-2">
-            {user.is_verified ? (
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-lg flex items-center gap-1 uppercase tracking-widest border border-emerald-200 shadow-sm">
-                    <BadgeCheck size={12} /> Verified
-                </span>
-            ) : (
-                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-lg flex items-center gap-1 uppercase tracking-widest border border-amber-200 shadow-sm">
-                    <Clock size={12} /> Pending
-                </span>
-            )}
-            {user.is_banned && (
-                <span className="bg-red-100 text-red-700 text-[10px] font-black px-3 py-1 rounded-lg flex items-center gap-1 uppercase tracking-widest border border-red-200 shadow-sm">
-                    <Ban size={12} /> Banned
-                </span>
-            )}
+            <StatusBadge status={user.status} />
             {user.role === 'admin' && (
                 <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black px-3 py-1 rounded-lg flex items-center gap-1 uppercase tracking-widest border border-indigo-200 shadow-sm">
                     <ShieldCheck size={12} /> Admin
@@ -115,42 +140,256 @@ const UserRow = ({ user, onUpdateStatus }) => {
       </td>
       <td className="py-5 text-right pr-4">
         <div className="flex items-center justify-end gap-2">
-          {!user.is_verified && (
-            <button 
-                onClick={() => handleAction({ is_verified: true })}
-                disabled={isUpdating}
-                className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all active:scale-90"
-                title="Verify User"
-            >
-              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-            </button>
-          )}
-          {!user.is_banned ? (
-            <button 
-                onClick={() => handleAction({ is_banned: true })}
-                disabled={isUpdating}
-                className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"
-                title="Ban User"
-            >
-              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
-            </button>
-          ) : (
-            <button 
-                onClick={() => handleAction({ is_banned: false })}
-                disabled={isUpdating}
-                className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90"
-                title="Unban User"
-            >
-              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <RefreshCcw size={18} />}
-            </button>
-          )}
-          <button className="p-2 text-slate-300 hover:text-blue-600 rounded-xl transition-all">
-            <MoreVertical size={18} />
+          <button className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-sm">
+            <ChevronRight size={18} />
           </button>
         </div>
       </td>
     </tr>
   );
+};
+
+const UserDetailModal = ({ user, onClose, onUpdateStatus }) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleAction = async (updates) => {
+        setIsUpdating(true);
+        await onUpdateStatus(user.id, updates);
+        setIsUpdating(false);
+        onClose();
+    };
+
+    if (!user) return null;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-110 flex items-center justify-center p-4 lg:p-8"
+        >
+          <div
+            onClick={onClose}
+            className="absolute inset-0 bg-blue-950/40 backdrop-blur-md"
+          />
+
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="relative w-full max-w-5xl bg-white/90 backdrop-blur-2xl rounded-4xl shadow-3xl border border-white overflow-hidden max-h-[90vh] flex flex-col"
+          >
+            {/* Header */}
+            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-white/50">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-blue-50 text-blue-600">
+                  <UserIcon size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-blue-950 tracking-tight">
+                    Citizen Profile
+                  </h2>
+                  <p className="text-sm font-bold text-slate-400">
+                    Registry ID: {user.id.slice(0, 8)}...
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-3 rounded-2xl hover:bg-slate-100 transition-all text-slate-400"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-8 md:p-12 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {/* Left Column: Info Card */}
+                <div className="lg:col-span-1 space-y-8">
+                  <div className="text-center space-y-4">
+                    <div className="relative inline-block mx-auto">
+                      <img
+                        src={
+                          user.avatar_url ||
+                          "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
+                            user.username
+                        }
+                        alt={user.full_name}
+                        className="w-32 h-32 rounded-4xl object-cover border-4 border-white shadow-xl mx-auto"
+                      />
+                      <div className="absolute -bottom-2 -right-2 p-2 bg-blue-600 rounded-2xl border-4 border-white text-white">
+                        <ShieldHalf size={20} />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-black text-blue-950 tracking-tighter">
+                        {user.full_name}
+                      </h3>
+                      <p className="text-blue-500 font-black">
+                        @{user.username}
+                      </p>
+                    </div>
+                    <div className="flex justify-center">
+                      <StatusBadge status={user.status} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-8 border-t border-slate-100">
+                    <div className="flex items-center gap-4 text-slate-600">
+                      <Mail className="text-blue-400" size={20} />
+                      <span className="font-bold truncate">{user.email}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-slate-600">
+                      <Calendar className="text-blue-400" size={20} />
+                      <span className="font-bold">
+                        Joined {new Date(user.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-slate-600">
+                      <TrendingUp className="text-blue-400" size={20} />
+                      <span className="font-bold">
+                        {user.time_balance} Hours Transacted
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+                    <p className="text-[10px] font-black text-blue-400 uppercase mb-2 tracking-widest">
+                      Self Description
+                    </p>
+                    <p className="text-sm font-bold text-blue-900 leading-relaxed italic">
+                      "{user.bio || "No biography provided."}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Column: Identity & Skills */}
+                <div className="lg:col-span-2 space-y-10">
+                  <div>
+                    <h4 className="text-lg font-black text-blue-950 mb-6 flex items-center gap-2">
+                      <ShieldCheck className="text-emerald-500" /> National
+                      Identity Document
+                    </h4>
+                    <div className="group relative rounded-4xl overflow-hidden border-4 border-white shadow-2xl bg-slate-100 aspect-video flex items-center justify-center">
+                      {user.id_card_url ? (
+                        <>
+                          <img
+                            src={user.id_card_url}
+                            alt="National ID"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-blue-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <a
+                              href={user.id_card_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-4 bg-white rounded-2xl text-blue-600 shadow-xl flex items-center gap-2 font-black transform translate-y-4 group-hover:translate-y-0 transition-transform"
+                            >
+                              <ExternalLink size={20} /> View Full Size
+                            </a>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center p-12 space-y-4">
+                          <AlertTriangle
+                            size={48}
+                            className="text-slate-300 mx-auto"
+                          />
+                          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+                            Document Not Uploaded
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-black text-blue-950 mb-4">
+                      Skill Inventory
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {user.skills && user.skills.length > 0 ? (
+                        user.skills.map((skill, i) => (
+                          <span
+                            key={i}
+                            className="px-5 py-2.5 bg-white border border-blue-100 text-blue-600 font-black rounded-2xl text-xs shadow-sm capitalize"
+                          >
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-slate-400 font-bold italic">
+                          No skills listed.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-8 border-t border-slate-100 flex flex-col md:flex-row justify-end gap-4 bg-white/50 backdrop-blur-xl">
+              {user.status === "pending" && (
+                <button
+                  onClick={() =>
+                    handleAction({ status: "verified", is_verified: true })
+                  }
+                  disabled={isUpdating}
+                  className="px-10 py-5 bg-emerald-600 text-white rounded-3xl font-black shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                  {isUpdating ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <CheckCircle size={20} />
+                  )}
+                  Approved Citizen
+                </button>
+              )}
+              {user.status !== "banned" ? (
+                <button
+                  onClick={() =>
+                    handleAction({ status: "banned", is_banned: true })
+                  }
+                  disabled={isUpdating}
+                  className="px-10 py-5 bg-red-600 text-white rounded-3xl font-black shadow-xl shadow-red-200 hover:bg-red-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                  {isUpdating ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Ban size={20} />
+                  )}
+                  Revoke Credentials
+                </button>
+              ) : (
+                <button
+                  onClick={() =>
+                    handleAction({ status: "pending", is_banned: false })
+                  }
+                  disabled={isUpdating}
+                  className="px-10 py-5 bg-blue-600 text-white rounded-3xl font-black shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                  {isUpdating ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <RefreshCcw size={20} />
+                  )}
+                  Restore to Pending
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="px-10 py-5 bg-slate-100 text-slate-500 rounded-3xl font-black hover:bg-slate-200 transition-all text-center"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
 };
 
 export default function AdminDashboard({ user }) {
@@ -162,6 +401,7 @@ export default function AdminDashboard({ user }) {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -355,7 +595,12 @@ export default function AdminDashboard({ user }) {
                                 ))
                             ) : filteredUsers.length > 0 ? (
                                 filteredUsers.map(u => (
-                                    <UserRow key={u.id} user={u} onUpdateStatus={updateStatus} />
+                                    <UserRow 
+                                        key={u.id} 
+                                        user={u} 
+                                        onUpdateStatus={updateStatus} 
+                                        onViewDetails={setSelectedUser}
+                                    />
                                 ))
                             ) : (
                                 <tr>
@@ -374,6 +619,13 @@ export default function AdminDashboard({ user }) {
                     </table>
                 </div>
             </div>
+            {selectedUser && (
+                <UserDetailModal 
+                    user={selectedUser} 
+                    onClose={() => setSelectedUser(null)} 
+                    onUpdateStatus={updateStatus}
+                />
+            )}
           </motion.div>
         );
       default:
