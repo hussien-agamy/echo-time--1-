@@ -178,7 +178,7 @@ export default function AdminDashboard({ user }) {
       const response = await api.get('/admin/stats');
       setStats(response.data);
     } catch (error) {
-      toast.error('Failed to load dashboard metrics');
+      toast.error(error.message || 'Failed to load dashboard metrics');
     } finally {
       setIsLoadingStats(false);
     }
@@ -190,7 +190,7 @@ export default function AdminDashboard({ user }) {
       const response = await api.get('/admin/users');
       setUsers(response.data);
     } catch (error) {
-      toast.error('Failed to load user database');
+      toast.error(error.message || 'Failed to load user database');
     } finally {
       setIsLoadingUsers(false);
     }
