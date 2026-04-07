@@ -260,7 +260,7 @@ const Auth = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="relative">
                   <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.password.status === 'error' ? 'text-red-400' : validation.password.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                   <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} 
@@ -472,7 +472,7 @@ const Auth = ({ onLogin }) => {
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white p-8 md:p-12 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] border border-blue-50 relative overflow-hidden">
+      <div className="w-full max-w-lg bg-white p-6 sm:p-8 md:p-12 rounded-[2.5rem] md:rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] border border-blue-50 relative overflow-hidden">
         {/* Progress indicator for signup */}
         {mode === 'signup' && (
           <div className="flex h-1.5 w-full bg-blue-50 absolute top-0 left-0">

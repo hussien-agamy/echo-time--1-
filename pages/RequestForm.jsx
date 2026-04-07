@@ -76,7 +76,7 @@ const RequestForm = ({ user, setUser }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] rounded-[4rem] p-10 md:p-16 border border-blue-50 relative overflow-hidden">
+        className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] rounded-[2.5rem] md:rounded-[4rem] p-6 sm:p-10 md:p-16 border border-blue-50 relative overflow-hidden">
         
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 blur-3xl rounded-full"></div>
         <div className="flex items-center gap-6 mb-16">
@@ -84,8 +84,8 @@ const RequestForm = ({ user, setUser }) => {
             <Layers size={40} />
           </div>
           <div>
-            <h1 className="text-5xl font-black text-blue-900 tracking-tighter leading-none">Post Request</h1>
-            <p className="text-blue-500 text-xl font-medium italic opacity-80 mt-2">What expertise do you require?</p>
+            <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter leading-none">Post Request</h1>
+            <p className="text-blue-500 text-lg md:text-xl font-medium italic opacity-80 mt-2">What expertise do you require?</p>
           </div>
         </div>
 
@@ -208,9 +208,9 @@ const RequestForm = ({ user, setUser }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white px-20 py-7 rounded-[2.5rem] font-black text-2xl shadow-[0_30px_60px_-15px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-50">
+              className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 md:px-20 md:py-7 rounded-4xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_30px_60px_-15px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-50">
               
-              {isSubmitting ? <Loader2 size={32} className="animate-spin" /> :
+              {isSubmitting ? <Loader2 size={24} md:size={32} className="animate-spin" /> :
               <>
                   Confirm Request
                   <Send size={32} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />

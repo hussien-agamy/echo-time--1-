@@ -399,7 +399,7 @@ const Chat = ({ user }) => {
           </div>
       </div> :
 
-      <div className="flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex flex-col items-center justify-center text-center p-12 space-y-6 shadow-2xl">
+      <div className="hidden md:flex flex-1 bg-white rounded-[2.5rem] border border-blue-100 flex-col items-center justify-center text-center p-12 space-y-6 shadow-2xl">
           <div className="w-32 h-32 bg-blue-50 text-blue-200 rounded-[3rem] flex items-center justify-center shadow-inner">
             <MessageSquare size={64} />
           </div>

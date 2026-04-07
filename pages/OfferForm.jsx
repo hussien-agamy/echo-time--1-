@@ -57,7 +57,7 @@ const OfferForm = ({ user, setUser }) => {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] rounded-[4rem] p-10 md:p-16 border border-blue-50 relative overflow-hidden">
+        className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.2)] rounded-[2.5rem] md:rounded-[4rem] p-6 sm:p-10 md:p-16 border border-blue-50 relative overflow-hidden">
         
         <div className="absolute top-0 right-0 w-80 h-80 bg-blue-50 blur-[100px] rounded-full -z-10"></div>
         <div className="flex items-center gap-8 mb-16">
@@ -65,8 +65,8 @@ const OfferForm = ({ user, setUser }) => {
             <Handshake size={48} />
           </div>
           <div className="space-y-1">
-            <h1 className="text-5xl font-black text-blue-900 tracking-tighter">Share a Skill</h1>
-            <p className="text-blue-400 text-xl font-bold italic opacity-80 leading-none">Help people and earn time hours.</p>
+            <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter">Share a Skill</h1>
+            <p className="text-blue-400 text-lg md:text-xl font-bold italic opacity-80 leading-none">Help people and earn time hours.</p>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ const OfferForm = ({ user, setUser }) => {
                     setFormData({ ...formData, skillsOffered: [...current, skill] });
                   }
                 }}
-                className={`px-10 py-5 rounded-[2rem] font-black text-xl transition-all border-4 duration-300 ${
+                className={`px-10 py-5 rounded-4xl font-black text-xl transition-all border-4 duration-300 ${
                 formData.skillsOffered.includes(skill) ?
                 'bg-blue-600 text-white border-blue-600 shadow-2xl scale-105' :
                 'bg-white text-blue-200 border-blue-50 hover:border-blue-300'}`
@@ -160,9 +160,9 @@ const OfferForm = ({ user, setUser }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-24 py-8 rounded-[3rem] font-black text-3xl shadow-2xl shadow-blue-900/20 transition-all flex items-center justify-center gap-5 group active:scale-95 disabled:opacity-50">
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-12 py-5 md:px-24 md:py-8 rounded-[2rem] md:rounded-[3rem] font-black text-xl md:text-3xl shadow-2xl shadow-blue-900/20 transition-all flex items-center justify-center gap-5 group active:scale-95 disabled:opacity-50">
               
-              {isSubmitting ? <Loader2 size={40} className="animate-spin" /> :
+              {isSubmitting ? <Loader2 size={32} className="animate-spin" /> :
               <>
                   Post My Skill
                   <CheckCircle2 size={40} className="group-hover:scale-125 transition-transform" />

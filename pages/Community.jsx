@@ -132,7 +132,7 @@ const Community = ({ user, setUser }) => {
 
       <div className="grid lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-blue-900/10 backdrop-blur-md p-2 rounded-2xl inline-flex gap-2 border border-white/10">
+          <div className="bg-blue-900/10 backdrop-blur-md p-2 rounded-2xl flex flex-wrap md:inline-flex gap-2 border border-white/10">
             {['All', 'Online', 'Physical'].map((f) =>
             <button
               key={f}
@@ -168,7 +168,7 @@ const Community = ({ user, setUser }) => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     whileHover={{ scale: 1.01 }}
-                    className="group bg-white shadow-2xl rounded-[3rem] p-10 border border-blue-50 hover:border-blue-200 transition-all duration-300 relative overflow-hidden">
+                    className="group bg-white shadow-2xl rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 border border-blue-50 hover:border-blue-200 transition-all duration-300 relative overflow-hidden">
                     
                       {isProcessing === req.id &&
                     <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-4">
@@ -193,8 +193,8 @@ const Community = ({ user, setUser }) => {
                               </span>
                             )}
                           </div>
-                          <h3 className="text-3xl font-black text-blue-900 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{req.title}</h3>
-                          <p className="text-blue-800/60 font-medium leading-relaxed text-lg">{req.description}</p>
+                          <h3 className="text-2xl md:text-3xl font-black text-blue-900 group-hover:text-blue-600 transition-colors tracking-tight leading-none">{req.title}</h3>
+                          <p className="text-blue-800/60 font-medium leading-relaxed text-base md:text-lg">{req.description}</p>
                           
                           <div className="flex items-center gap-8 pt-4 border-t border-blue-50">
                             <div className="flex items-center gap-3 text-blue-700 font-black text-xl tracking-tighter">
@@ -235,7 +235,7 @@ const Community = ({ user, setUser }) => {
         </div>
 
         <div className="space-y-10">
-          <div className="bg-white rounded-[3rem] p-10 border border-blue-100 shadow-2xl space-y-8">
+          <div className="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 border border-blue-100 shadow-2xl space-y-8">
             <h3 className="text-2xl font-black text-blue-900 tracking-tight">Your Activity</h3>
             <div className="space-y-5">
               <Link to="/request-help" className="flex items-center justify-between p-7 bg-blue-50 rounded-[2rem] group hover:bg-blue-600 transition-all shadow-inner border border-blue-100">
@@ -257,7 +257,7 @@ const Community = ({ user, setUser }) => {
 
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-linear-to-br from-blue-700 to-blue-950 rounded-[3rem] p-10 text-white space-y-8 shadow-[0_40px_80px_-15px_rgba(30,64,175,0.4)] relative overflow-hidden group">
+            className="bg-linear-to-br from-blue-700 to-blue-950 rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 text-white space-y-8 shadow-[0_40px_80px_-15px_rgba(30,64,175,0.4)] relative overflow-hidden group">
             
             <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
             <h3 className="text-2xl font-black flex items-center gap-3 relative z-10 tracking-tight">

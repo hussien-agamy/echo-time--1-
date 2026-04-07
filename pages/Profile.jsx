@@ -114,9 +114,9 @@ const Profile = ({ user, setUser }) => {
   }, [activeTab]);
 
   return (
-    <div className="max-w-6xl mx-auto py-12 space-y-12">
+    <div className="max-w-6xl mx-auto py-6 md:py-12 space-y-8 md:space-y-12 px-4 md:px-0">
       {/* Profile Header */}
-      <div className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.1)] rounded-[4rem] p-10 md:p-12 flex flex-col lg:flex-row items-center gap-12 border border-blue-50 relative overflow-hidden">
+      <div className="bg-white shadow-[0_50px_100px_-20px_rgba(30,64,175,0.1)] rounded-[2.5rem] md:rounded-[4rem] p-6 sm:p-10 md:p-12 flex flex-col lg:flex-row items-center gap-8 md:gap-12 border border-blue-50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-32 h-32 bg-blue-50/50 blur-3xl rounded-full"></div>
         <div className="relative group">
           <img src={user.avatar_url} alt={user.username} className="w-52 h-52 rounded-[3.5rem] object-cover border-8 border-white shadow-2xl group-hover:scale-105 transition-transform duration-500" />
@@ -125,10 +125,10 @@ const Profile = ({ user, setUser }) => {
           </div>
         </div>
         
-        <div className="flex-1 text-center lg:text-left space-y-6">
-          <div className="space-y-3">
-            <h1 className="text-5xl font-black text-blue-900 tracking-tighter">{user.full_name}</h1>
-            <h3 className="text-3xl font-black text-blue-400 tracking-tighter">@{user.username}</h3>
+        <div className="flex-1 text-center lg:text-left space-y-4 md:space-y-6">
+          <div className="space-y-2 md:space-y-3 mt-4 md:mt-0">
+            <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter">{user.full_name}</h1>
+            <h3 className="text-2xl md:text-3xl font-black text-blue-400 tracking-tighter">@{user.username}</h3>
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5">
               <div className="flex items-center gap-2 text-blue-600 font-black bg-blue-50 px-6 py-2.5 rounded-2xl shadow-sm border border-blue-100">
                 <Star size={20} fill="currentColor" />
@@ -185,7 +185,7 @@ const Profile = ({ user, setUser }) => {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white shadow-2xl rounded-[4rem] p-10 md:p-16 min-h-[500px] border border-blue-50 relative overflow-hidden">
+      <div className="bg-white shadow-2xl rounded-[2.5rem] md:rounded-[4rem] p-6 sm:p-10 md:p-16 min-h-100 md:min-h-125 border border-blue-50 relative overflow-hidden">
         <AnimatePresence mode="wait">
           {activeTab === 'about' &&
           <motion.div
@@ -408,7 +408,7 @@ const Profile = ({ user, setUser }) => {
       </div>
 
       {/* Footer Navigation */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-6 bg-white shadow-2xl p-10 rounded-[3.5rem] border border-blue-50">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 bg-white shadow-2xl p-6 sm:p-10 rounded-[2.5rem] md:rounded-[3.5rem] border border-blue-50">
         <Link to="/" className="text-blue-900 font-black hover:text-blue-600 flex items-center gap-3 text-xl tracking-tight transition-colors">
            &larr; Back to Home
         </Link>

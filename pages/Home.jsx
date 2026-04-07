@@ -60,19 +60,19 @@ const Home = () => {
           <div className="inline-flex items-center gap-2 bg-blue-500/20 px-5 py-2.5 rounded-full border border-white/20 text-blue-100 font-black text-xs uppercase tracking-[0.2em]">
             <Sparkles size={14} /> The Best Way to Trade Skills
           </div>
-          <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter">
+          <h1 className="text-5xl md:text-6xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter">
             Share Time. <br />
             <span className="text-blue-200">Grow Fast.</span>
           </h1>
           <p className="text-xl text-blue-50 leading-relaxed max-w-lg mx-auto lg:mx-0 font-medium opacity-90">
             Echo Time is a group where people help each other. You don't need money. Just use your skills to help others and get help back.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
-            <Link to="/get-started" className="bg-white text-blue-600 hover:bg-blue-50 px-10 py-5 rounded-[2rem] font-black text-xl shadow-2xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-1">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center lg:justify-start">
+            <Link to="/get-started" className="bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-10 py-5 rounded-[2rem] font-black text-lg sm:text-xl shadow-2xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-1">
               Start Now
               <ArrowRight size={20} />
             </Link>
-            <Link to="/community" className="bg-blue-700/40 text-white backdrop-blur border border-white/20 px-10 py-5 rounded-[2rem] font-black text-xl transition-all flex items-center justify-center hover:bg-blue-700/60 transform hover:-translate-y-1">
+            <Link to="/community" className="bg-blue-700/40 text-white backdrop-blur border border-white/20 px-6 sm:px-10 py-5 rounded-[2rem] font-black text-lg sm:text-xl transition-all flex items-center justify-center hover:bg-blue-700/60 transform hover:-translate-y-1">
               Find Help
             </Link>
           </div>
@@ -84,8 +84,8 @@ const Home = () => {
           transition={{ duration: 1 }}
           className="lg:w-1/2 relative">
           
-          <div className="bg-white p-10 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] border border-white/40 transform hover:scale-[1.02] transition-transform duration-700">
-            <div className="grid grid-cols-2 gap-8">
+          <div className="bg-white p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(30,64,175,0.4)] border border-white/40 transform hover:scale-[1.02] transition-transform duration-700">
+            <div className="grid grid-cols-2 gap-4 md:gap-8">
               {[
               { icon: <Clock />, val: <AnimatedCounter to={12} suffix="k+" />, label: 'Hours Traded' },
               { icon: <Star />, val: <AnimatedCounter to={4.9} isDecimal={true} />, label: 'Platform Rating' },
@@ -97,7 +97,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 * i }}
-                className="bg-blue-50 p-8 rounded-[2.5rem] space-y-3 border border-blue-100 shadow-inner">
+                className="bg-blue-50 p-4 sm:p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] space-y-3 border border-blue-100 shadow-inner">
                 
                   <div className="text-blue-600 mb-2">{item.icon}</div>
                   <div className="text-4xl font-black text-blue-900 tracking-tighter">{item.val}</div>
@@ -120,7 +120,7 @@ const Home = () => {
           <motion.h2
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            className="text-5xl font-black text-white tracking-tight">
+            className="text-4xl md:text-5xl font-black text-white tracking-tight">
             
             How it Works
           </motion.h2>

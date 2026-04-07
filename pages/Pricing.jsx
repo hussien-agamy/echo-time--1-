@@ -6,27 +6,26 @@ import { api } from '../services/api';
 import { useToast } from '../components/ToastContext';
 
 
-const PricingCard =
-
-
-
-
-
-
-
-({ title, price, hours, features, isPopular, onSelect, isLoading }) =>
-<motion.div
-  whileHover={{ y: -10 }}
-  className={`relative bg-white shadow-2xl rounded-[3.5rem] p-12 flex flex-col border border-blue-50 transition-all duration-500 ${isPopular ? 'ring-8 ring-blue-600/10 scale-105 z-10' : ''}`}>
+const PricingCard = ({ title, price, hours, features, isPopular, onSelect, isLoading, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay, type: "spring" }}
+    whileHover={{ y: -10 }}
+    className={`relative bg-white/80 backdrop-blur-3xl shadow-2xl rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col border border-white/60 transition-all duration-500 overflow-hidden ${isPopular ? 'ring-4 md:ring-8 ring-blue-600/20 md:scale-105 z-10 shadow-blue-500/20' : ''}`}>
   
     {isPopular &&
-  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-xl">
-        Most Popular
+      <div className="absolute top-0 left-0 right-0 bg-linear-to-r from-blue-600 to-indigo-600 text-white py-2 text-center font-black text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-md">
+        Most Popular Choice
       </div>
-  }
+    }
     
-    <div className="space-y-4 mb-10 text-center">
-      <h3 className="text-3xl font-black text-blue-900 tracking-tight">{title}</h3>
+    {isPopular && (
+      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+    )}
+    
+    <div className={`space-y-4 mb-10 text-center ${isPopular ? 'mt-6' : ''}`}>
+      <h3 className="text-2xl md:text-3xl font-black text-blue-950 tracking-tight">{title}</h3>
       <div className="text-6xl font-black text-blue-900 tracking-tighter">{price}</div>
       <div className="font-black uppercase tracking-widest text-[10px] px-5 py-2 rounded-full bg-blue-50 text-blue-600 inline-block">{hours}h Every Month</div>
     </div>
@@ -53,7 +52,8 @@ const PricingCard =
     
       {isLoading ? <Loader2 className="animate-spin" /> : 'Join Plan'}
     </button>
-  </motion.div>;
+  </motion.div>
+);
 
 
 const Pricing = ({ user, setUser }) => {
@@ -100,8 +100,8 @@ const Pricing = ({ user, setUser }) => {
           
           Scale Your Success
         </motion.div>
-        <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter">Choose Your <br />Plan.</h1>
-        <p className="text-blue-100 text-2xl max-w-3xl mx-auto font-medium opacity-90 leading-relaxed">Get more hours, better reviews, and early access to high-paying client work.</p>
+        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter leading-[1.1]">Choose Your <br className="hidden sm:block" />Plan.</h1>
+        <p className="text-blue-100/90 text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto font-medium px-4 leading-relaxed">Get more hours, better reviews, and early access to high-paying client work.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-10 items-center">
@@ -122,6 +122,7 @@ const Pricing = ({ user, setUser }) => {
           isPopular
           title="Pro"
           price="$29/mo"
+          delay={0.1}
           hours={15}
           isLoading={loadingPlan === 'Pro'}
           onSelect={(h) => handleUpdateBalance(h, 'Pro')}
@@ -136,6 +137,7 @@ const Pricing = ({ user, setUser }) => {
         <PricingCard
           title="Elite"
           price="$99/mo"
+          delay={0.2}
           hours={60}
           isLoading={loadingPlan === 'Elite'}
           onSelect={(h) => handleUpdateBalance(h, 'Elite')}
@@ -150,32 +152,35 @@ const Pricing = ({ user, setUser }) => {
       </div>
 
       <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         whileHover={{ scale: 1.01 }}
-        className="bg-white shadow-[0_40px_100px_-20px_rgba(30,64,175,0.2)] rounded-[4rem] p-16 border border-blue-50 group overflow-hidden relative">
+        className="bg-white/90 backdrop-blur-2xl shadow-[0_40px_100px_-20px_rgba(30,64,175,0.25)] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 border border-white/50 overflow-hidden relative">
         
-        <div className="absolute top-0 right-0 w-125 h-125 bg-blue-50/50 blur-[100px] rounded-full -z-10 transition-transform duration-1000 group-hover:scale-110"></div>
+        <div className="absolute top-0 right-0 w-125 h-125 bg-blue-400/20 blur-[100px] rounded-full -z-10 transition-transform duration-1000"></div>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
-          <div className="space-y-8 max-w-xl text-center lg:text-left">
-            <div className="w-24 h-24 bg-blue-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-blue-200 mx-auto lg:mx-0">
-              <Clock size={48} />
+          <div className="space-y-6 md:space-y-8 max-w-xl text-center lg:text-left flex-1">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-linear-to-tr from-blue-600 to-indigo-500 text-white rounded-3xl md:rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-blue-500/30 mx-auto lg:mx-0">
+              <Clock size={40} className="md:w-12 md:h-12" />
             </div>
-            <h2 className="text-5xl font-black text-blue-900 tracking-tight">Need Hours Now?</h2>
-            <p className="text-blue-800/60 text-xl leading-relaxed font-bold">
+            <h2 className="text-4xl md:text-5xl font-black text-blue-950 tracking-tight">Need Hours Now?</h2>
+            <p className="text-blue-900/60 text-lg md:text-xl leading-relaxed font-bold">
               Are you low on balance? Buy hours instantly to complete your project or hire a specialist for your team.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-8 justify-center">
+          <div className="flex flex-wrap gap-4 md:gap-8 justify-center lg:justify-end flex-1">
             {[
-            { h: 2, p: '$5', icon: <Zap size={28} />, label: 'Boost' },
-            { h: 5, p: '$12', icon: <Star size={28} />, label: 'Power' },
-            { h: 10, p: '$20', icon: <ShieldCheck size={28} />, label: 'Elite' }].
+            { h: 2, p: '$5', icon: <Zap size={24} />, label: 'Boost' },
+            { h: 5, p: '$12', icon: <Star size={24} />, label: 'Power' },
+            { h: 10, p: '$20', icon: <ShieldCheck size={24} />, label: 'Elite' }].
             map((pkg, i) =>
             <button
               key={i}
               onClick={() => handleUpdateBalance(pkg.h, pkg.label)}
               disabled={loadingPlan === pkg.label}
-              className="group relative bg-blue-50 hover:bg-blue-600 p-12 rounded-[3.5rem] border border-blue-100 hover:border-blue-600 transition-all duration-500 flex flex-col items-center gap-8 w-52 shadow-xl hover:shadow-blue-200 active:scale-95">
+              className="group relative bg-white md:bg-blue-50 hover:bg-linear-to-b hover:from-blue-600 hover:to-indigo-600 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-blue-100 hover:border-transparent transition-all duration-300 flex flex-col items-center gap-4 md:gap-8 w-40 md:w-52 shadow-lg md:shadow-xl hover:shadow-blue-500/30 active:scale-95">
               
                 {loadingPlan === pkg.label ?
               <Loader2 size={32} className="animate-spin text-blue-600 group-hover:text-white" /> :
@@ -184,9 +189,9 @@ const Pricing = ({ user, setUser }) => {
                     {pkg.icon}
                   </div>
               }
-                <div className="text-center">
-                  <div className="text-5xl font-black text-blue-900 group-hover:text-white transition-all duration-500 tracking-tighter">{pkg.h}h</div>
-                  <div className="text-2xl font-black text-blue-400 group-hover:text-blue-100 transition-all duration-500 tracking-tight">{pkg.p}</div>
+                <div className="text-center z-10 transition-colors">
+                  <div className="text-4xl md:text-5xl font-black text-blue-950 group-hover:text-white transition-all tracking-tighter">{pkg.h}h</div>
+                  <div className="text-xl md:text-2xl font-black text-blue-500 group-hover:text-blue-200 transition-all tracking-tight">{pkg.p}</div>
                 </div>
               </button>
             )}
