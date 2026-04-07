@@ -7,9 +7,11 @@ import {
   BookOpen, Activity, Play, CheckCircle2, Loader2 
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useToast } from '../components/ToastContext';
 
 const Onboarding = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
@@ -108,7 +110,7 @@ const Onboarding = ({ user, setUser }) => {
       else if (data.startPoint === 'offer') navigate('/offer-help');
       else navigate('/community');
     } catch (error) {
-      alert(error.message || "Failed to complete onboarding");
+      toast.error(error.message || "Failed to complete onboarding");
     } finally {
       setLoading(false);
     }

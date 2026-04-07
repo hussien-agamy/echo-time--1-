@@ -3,6 +3,7 @@ import { Send, Info, ArrowLeft, Search, CheckCheck, MessageSquare, CheckCircle, 
 import { api, API_URL } from '../services/api';
 import { io } from 'socket.io-client';
 import { motion } from 'framer-motion';
+import { useToast } from '../components/ToastContext';
 
 // Use the same base URL as the API, but strip the /api suffix if it exists
 const SOCKET_URL = API_URL.replace('/api', '');
@@ -11,6 +12,7 @@ const Chat = ({ user }) => {
   const [threads, setThreads] = useState([]);
   const [activeThreadId, setActiveThreadId] = useState(null);
   const [inputText, setInputText] = useState('');
+  const toast = useToast();
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [rating, setRating] = useState(0);
@@ -219,7 +221,7 @@ const Chat = ({ user }) => {
       // Note: setShowReviewModal(true) is now handled by handleTaskCompleted for everyone
     } catch (err) {
       console.error('Failed to complete task:', err);
-      alert('Failed to complete task: ' + err.message);
+      toast.error('Failed to complete task: ' + err.message);
     }
   };
 
@@ -234,7 +236,7 @@ const Chat = ({ user }) => {
       setSubmitted(true);
     } catch (err) {
       console.error('Failed to submit review:', err);
-      alert('Failed to submit review: ' + err.message);
+      toast.error('Failed to submit review: ' + err.message);
     }
   };
 
@@ -251,7 +253,7 @@ const Chat = ({ user }) => {
       setShowSettingsModal(false);
     } catch (err) {
       console.error('Failed to delete chat:', err);
-      alert('Failed to delete chat: ' + err.message);
+      toast.error('Failed to delete chat: ' + err.message);
     }
   };
 

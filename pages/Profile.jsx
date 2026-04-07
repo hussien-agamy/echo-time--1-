@@ -22,7 +22,9 @@ import {
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ProfileStreakWidget, loadStreaks } from '../components/StreakSystem';
+import { ProfileStreakWidget } from '../components/StreakSystem';
+import { useToast } from '../components/ToastContext';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 
 
@@ -36,6 +38,7 @@ const Profile = ({ user, setUser }) => {
   const [newSkill, setNewSkill] = useState('');
   const [history, setHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const toast = useToast();
 
   const tabs = [
   { id: 'about', label: 'About', icon: <UserIcon size={18} /> },
@@ -51,8 +54,9 @@ const Profile = ({ user, setUser }) => {
       await api.post('/users/onboarding', { ...user.onboardingData, bio: tempBio, interests: user.skills });
       setUser({ ...user, bio: tempBio });
       setIsEditingBio(false);
+      toast.success("Bio updated successfully!");
     } catch (error) {
-      alert("Failed to save bio: " + error.message);
+      toast.error("Failed to save bio: " + error.message);
     }
   };
 
@@ -64,8 +68,9 @@ const Profile = ({ user, setUser }) => {
         await api.post('/users/onboarding', { ...user.onboardingData, interests: updatedSkills });
         setUser({ ...user, skills: updatedSkills });
         setNewSkill('');
+        toast.success("Skill added!");
       } catch (error) {
-        alert("Failed to add skill: " + error.message);
+        toast.error("Failed to add skill: " + error.message);
       }
     }
   };
@@ -75,7 +80,7 @@ const Profile = ({ user, setUser }) => {
       const response = await api.get('/users/me');
       setUser(response.data);
     } catch (error) {
-      alert("Failed to get about data: " + error.message);
+      toast.error("Failed to get about data: " + error.message);
     }
   }
   
@@ -84,8 +89,9 @@ const Profile = ({ user, setUser }) => {
     try {
       await api.post('/users/onboarding', { ...user.onboardingData, interests: updatedSkills });
       setUser({ ...user, skills: updatedSkills });
+      toast.info("Skill removed.");
     } catch (error) {
-      alert("Failed to remove skill: " + error.message);
+      toast.error("Failed to remove skill: " + error.message);
     }
   };
 
@@ -130,21 +136,33 @@ const Profile = ({ user, setUser }) => {
               </div>
               <div className="flex items-center gap-2 text-blue-800 font-black bg-blue-50 px-6 py-2.5 rounded-2xl shadow-sm border border-blue-100">
                 <Clock size={20} />
-                {user.timeBalance ?? 0.0}h <span className="text-blue-400 font-bold text-xs uppercase ml-1">Balance</span>
+                {user.time_balance ?? 0.0}h <span className="text-blue-400 font-bold text-xs uppercase ml-1">Balance</span>
               </div>
             </div>
           </div>
           <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
-            <button className="bg-white border-2 border-blue-50 text-blue-400 px-8 py-4 rounded-[1.8rem] font-black text-lg transition-all flex items-center gap-3 hover:bg-blue-50 hover:text-blue-600 active:scale-95">
-              <LogOut size={20} />
-              Sign Out
-            </button>
+            {user.status === 'banned' ? (
+              <div className="flex items-center gap-2 text-red-600 font-black bg-red-50 px-6 py-2.5 rounded-2xl shadow-sm border border-red-100">
+                <AlertTriangle size={20} />
+                Account Suspended
+              </div>
+            ) : user.is_verified ? (
+              <div className="flex items-center gap-2 text-emerald-600 font-black bg-emerald-50 px-6 py-2.5 rounded-2xl shadow-sm border border-emerald-100">
+                <ShieldCheck size={20} />
+                Verified Account
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-amber-600 font-black bg-amber-50 px-6 py-2.5 rounded-2xl shadow-sm border border-amber-100">
+                <Clock size={20} />
+                Pending Verification
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Streak Widget */}
-      <ProfileStreakWidget streaks={loadStreaks()} />
+      <ProfileStreakWidget />
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-[2.5rem] p-3 border border-blue-50 shadow-xl overflow-x-auto flex justify-center sticky top-24 z-30">

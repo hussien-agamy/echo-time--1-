@@ -15,9 +15,11 @@ import {
 'lucide-react';
 import { api } from '../services/api';
 import { motion } from 'framer-motion';
+import { useToast } from '../components/ToastContext';
 
 const RequestForm = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -32,12 +34,12 @@ const RequestForm = ({ user, setUser }) => {
     e.preventDefault();
 
     if (!user.is_verified) {
-      alert("Your account is currently pending verification. You'll be able to post requests once an administrator approves your identity documents.");
+      toast.warning("Your account is currently pending verification. You'll be able to post requests once an administrator approves your identity documents.");
       return;
     }
 
-    if (user.timeBalance < formData.timeRequired) {
-      alert("Insufficient time balance! You need to help others or purchase more hours.");
+    if (user.time_balance < formData.timeRequired) {
+      toast.error("Insufficient time balance! You need to help others or purchase more hours.");
       return;
     }
 
@@ -54,12 +56,12 @@ const RequestForm = ({ user, setUser }) => {
       const response = await api.post('/tasks', taskData);
       
       // Update local user state (deduct time)
-      setUser({ ...user, timeBalance: user.timeBalance - formData.timeRequired });
+      setUser({ ...user, time_balance: user.time_balance - formData.timeRequired });
 
       setIsSubmitting(false);
       navigate('/community');
     } catch (error) {
-      alert(error.message || "Failed to create task");
+      toast.error(error.message || "Failed to create task");
       setIsSubmitting(false);
     }
   };

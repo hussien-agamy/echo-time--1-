@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
 import { Check, Clock, ShieldCheck, Zap, Star, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../services/api';
+import { useToast } from '../components/ToastContext';
 
 
 const PricingCard =
@@ -43,7 +45,7 @@ const PricingCard =
     <button
     disabled={isLoading}
     onClick={() => onSelect(hours)}
-    className={`w-full py-6 rounded-[2rem] font-black text-xl shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+    className={`w-full py-6 rounded-4xl font-black text-xl shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
     isPopular ?
     'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200' :
     'bg-blue-50 text-blue-600 hover:bg-blue-100'}`
@@ -55,18 +57,37 @@ const PricingCard =
 
 
 const Pricing = ({ user, setUser }) => {
+  const toast = useToast();
   const [loadingPlan, setLoadingPlan] = useState(null);
 
-  const handleUpdateBalance = (hours, label) => {
+  const [paymentStatus, setPaymentStatus] = useState(null);
+
+  const handleUpdateBalance = async (hours, label) => {
     setLoadingPlan(label);
-    setTimeout(() => {
-      setUser({
-        ...user,
-        timeBalance: user.timeBalance + hours
-      });
+    setPaymentStatus('processing');
+    
+    try {
+      // Simulate network wait for "payment processing"
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const response = await api.patch('/users/balance/add', { amount: hours });
+      
+      if (response.data.success) {
+        setUser({
+          ...user,
+          time_balance: response.data.data.time_balance
+        });
+        setPaymentStatus('success');
+        setTimeout(() => {
+          setPaymentStatus(null);
+          setLoadingPlan(null);
+        }, 2000);
+      }
+    } catch (error) {
+      toast.error("Failed to process payment");
+      setPaymentStatus(null);
       setLoadingPlan(null);
-      alert(`Great! We added ${hours} hours to your balance.`);
-    }, 1200);
+    }
   };
 
   return (
@@ -132,7 +153,7 @@ const Pricing = ({ user, setUser }) => {
         whileHover={{ scale: 1.01 }}
         className="bg-white shadow-[0_40px_100px_-20px_rgba(30,64,175,0.2)] rounded-[4rem] p-16 border border-blue-50 group overflow-hidden relative">
         
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/50 blur-[100px] rounded-full -z-10 transition-transform duration-1000 group-hover:scale-110"></div>
+        <div className="absolute top-0 right-0 w-125 h-125 bg-blue-50/50 blur-[100px] rounded-full -z-10 transition-transform duration-1000 group-hover:scale-110"></div>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
           <div className="space-y-8 max-w-xl text-center lg:text-left">
             <div className="w-24 h-24 bg-blue-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-blue-200 mx-auto lg:mx-0">
@@ -172,6 +193,49 @@ const Pricing = ({ user, setUser }) => {
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {paymentStatus && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-blue-900/40 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-[3rem] p-12 flex flex-col items-center max-w-sm w-full mx-4 shadow-2xl"
+            >
+              {paymentStatus === 'processing' ? (
+                <>
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    className="w-20 h-20 border-4 border-blue-100 border-t-blue-600 rounded-full mb-6"
+                  />
+                  <h3 className="text-2xl font-black text-blue-900 mb-2">Processing...</h3>
+                  <p className="text-blue-500 font-bold text-center">Securely processing your plan purchase.</p>
+                </>
+              ) : (
+                <>
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6"
+                  >
+                    <Check size={40} strokeWidth={3} />
+                  </motion.div>
+                  <h3 className="text-2xl font-black text-emerald-600 mb-2">Payment Successful!</h3>
+                  <p className="text-blue-500 font-bold text-center">Your time balance has been updated.</p>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>);
 
 };

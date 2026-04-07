@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mail, Lock, User as UserIcon, ShieldCheck, Upload, ArrowRight, 
@@ -27,13 +27,87 @@ const Auth = ({ onLogin }) => {
     idCardData: null
   });
 
+  const [validation, setValidation] = useState({
+    fullName: { status: 'idle', message: '' },
+    username: { status: 'idle', message: '' },
+    email: { status: 'idle', message: '' },
+    password: { status: 'idle', message: '' },
+    confirmPassword: { status: 'idle', message: '' }
+  });
+
   const [currentSkill, setCurrentSkill] = useState('');
   const [previews, setPreviews] = useState({ avatar: null, idCard: null });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === 'username') {
+      value = value.toLowerCase().replace(/\s+/g, '');
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Real-time Validation Effects
+  useEffect(() => {
+    // Validate Full Name
+    if (formData.fullName.length > 0) {
+      setValidation(prev => ({ ...prev, fullName: { status: formData.fullName.length >= 3 ? 'success' : 'error', message: formData.fullName.length < 3 ? 'Too short' : '' } }));
+    } else {
+      setValidation(prev => ({ ...prev, fullName: { status: 'idle', message: '' } }));
+    }
+  }, [formData.fullName]);
+
+  useEffect(() => {
+    // Validate Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email.length > 0) {
+      setValidation(prev => ({ ...prev, email: { status: emailRegex.test(formData.email) ? 'success' : 'error', message: emailRegex.test(formData.email) ? '' : 'Invalid email format' } }));
+    } else {
+      setValidation(prev => ({ ...prev, email: { status: 'idle', message: '' } }));
+    }
+  }, [formData.email]);
+
+  useEffect(() => {
+    // Validate Password
+    if (formData.password.length > 0) {
+      setValidation(prev => ({ ...prev, password: { status: formData.password.length >= 6 ? 'success' : 'error', message: formData.password.length >= 6 ? '' : 'Min 6 characters' } }));
+    } else {
+      setValidation(prev => ({ ...prev, password: { status: 'idle', message: '' } }));
+    }
+  }, [formData.password]);
+
+  useEffect(() => {
+    // Validate Confirm Password
+    if (formData.confirmPassword.length > 0) {
+      const match = formData.password === formData.confirmPassword;
+      setValidation(prev => ({ ...prev, confirmPassword: { status: match ? 'success' : 'error', message: match ? '' : 'Passwords must match' } }));
+    } else {
+      setValidation(prev => ({ ...prev, confirmPassword: { status: 'idle', message: '' } }));
+    }
+  }, [formData.confirmPassword, formData.password]);
+
+  useEffect(() => {
+    // Debounced Username Check
+    if (formData.username.length < 3) {
+      setValidation(prev => ({ ...prev, username: { status: formData.username.length === 0 ? 'idle' : 'error', message: formData.username.length === 0 ? '' : 'Min 3 characters' } }));
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      setValidation(prev => ({ ...prev, username: { status: 'checking', message: '' } }));
+      try {
+        const res = await api.get(`/users/check-username?username=${formData.username}`);
+        if (res.data.exists) {
+          setValidation(prev => ({ ...prev, username: { status: 'error', message: 'Username already taken' } }));
+        } else {
+          setValidation(prev => ({ ...prev, username: { status: 'success', message: 'Username available' } }));
+        }
+      } catch (err) {
+        setValidation(prev => ({ ...prev, username: { status: 'error', message: 'Check failed' } }));
+      }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [formData.username]);
 
   const handleFileUpload = (e, field) => {
     const file = e.target.files[0];
@@ -59,37 +133,21 @@ const Auth = ({ onLogin }) => {
     setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }));
   };
 
-  const validateStep1 = async () => {
-    if (!formData.fullName || !formData.username || !formData.email || !formData.password) {
-      setError("All fields are required.");
+  const validateStep1 = () => {
+    const fields = ['fullName', 'username', 'email', 'password', 'confirmPassword'];
+    const invalidFields = fields.filter(f => validation[f].status !== 'success');
+    
+    if (invalidFields.length > 0) {
+      setError(`Please check the following fields: ${invalidFields.join(', ')}`);
       return false;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return false;
-    }
-
-    setLoading(true);
-    try {
-      const res = await api.get(`/users/check-username?username=${formData.username}`);
-      if (res.data.exists) {
-        setError("Username is already taken.");
-        return false;
-      }
-      return true;
-    } catch (err) {
-      setError(err.message || "Failed to validate username.");
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    return true;
   };
 
-  const nextStep = async () => {
+  const nextStep = () => {
     setError(null);
     if (step === 1) {
-      const isValid = await validateStep1();
-      if (isValid) setStep(2);
+      if (validateStep1()) setStep(2);
     } else if (step === 2) {
       if (!formData.bio) {
         setError("Please write a short bio about your expertise.");
@@ -112,8 +170,8 @@ const Auth = ({ onLogin }) => {
 
   const handleLogin = async () => {
     setError(null);
-    if (!formData.email || !formData.password) {
-      setError("Please enter your credentials.");
+    if (validation.email.status !== 'success' || validation.password.status !== 'success') {
+      setError("Please enter a valid email and password.");
       return;
     }
 
@@ -171,30 +229,55 @@ const Auth = ({ onLogin }) => {
             
             <div className="space-y-3">
               <div className="relative">
-                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+                <UserIcon className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.fullName.status === 'error' ? 'text-red-400' : validation.fullName.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                 <input name="fullName" type="text" placeholder="Full Name" value={formData.fullName} onChange={handleInputChange} 
-                  className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900" />
+                  className={`w-full bg-blue-50 border-2 rounded-2xl pl-12 pr-12 py-4 outline-none transition-all font-bold text-blue-900 ${validation.fullName.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.fullName.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  {validation.fullName.status === 'success' && <Check className="text-emerald-500" size={18} />}
+                  {validation.fullName.status === 'error' && <AlertCircle className="text-red-500" size={18} />}
+                </div>
               </div>
+
               <div className="relative">
-                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+                <UserCircle className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.username.status === 'error' ? 'text-red-400' : validation.username.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                 <input name="username" type="text" placeholder="Username" value={formData.username} onChange={handleInputChange} 
-                  className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900" />
+                  className={`w-full bg-blue-50 border-2 rounded-2xl pl-12 pr-12 py-4 outline-none transition-all font-bold text-blue-900 ${validation.username.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.username.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  {validation.username.status === 'checking' && <Loader2 className="text-blue-500 animate-spin" size={18} />}
+                  {validation.username.status === 'success' && <Check className="text-emerald-500" size={18} />}
+                  {validation.username.status === 'error' && <AlertCircle className="text-red-500" size={18} />}
+                </div>
+                {validation.username.message && <p className="text-[10px] font-black uppercase text-emerald-500 mt-1 ml-4">{validation.username.message}</p>}
               </div>
+
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.email.status === 'error' ? 'text-red-400' : validation.email.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                 <input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} 
-                  className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900" />
+                  className={`w-full bg-blue-50 border-2 rounded-2xl pl-12 pr-12 py-4 outline-none transition-all font-bold text-blue-900 ${validation.email.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.email.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  {validation.email.status === 'success' && <Check className="text-emerald-500" size={18} />}
+                  {validation.email.status === 'error' && <AlertCircle className="text-red-500" size={18} />}
+                </div>
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+                  <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.password.status === 'error' ? 'text-red-400' : validation.password.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                   <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} 
-                    className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900 text-sm" />
+                    className={`w-full bg-blue-50 border-2 rounded-2xl pl-10 pr-10 py-4 outline-none transition-all font-bold text-blue-900 text-xs ${validation.password.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.password.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {validation.password.status === 'success' && <Check className="text-emerald-500" size={14} />}
+                    {validation.password.status === 'error' && <AlertCircle className="text-red-500" size={14} />}
+                  </div>
                 </div>
                 <div className="relative">
-                  <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+                  <ShieldCheck className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.confirmPassword.status === 'error' ? 'text-red-400' : validation.confirmPassword.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
                   <input name="confirmPassword" type="password" placeholder="Confirm" value={formData.confirmPassword} onChange={handleInputChange} 
-                    className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900 text-sm" />
+                    className={`w-full bg-blue-50 border-2 rounded-2xl pl-10 pr-10 py-4 outline-none transition-all font-bold text-blue-900 text-xs ${validation.confirmPassword.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.confirmPassword.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {validation.confirmPassword.status === 'success' && <Check className="text-emerald-500" size={14} />}
+                    {validation.confirmPassword.status === 'error' && <AlertCircle className="text-red-500" size={14} />}
+                  </div>
                 </div>
               </div>
             </div>
@@ -356,14 +439,22 @@ const Auth = ({ onLogin }) => {
 
       <div className="space-y-4">
         <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+          <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.email.status === 'error' ? 'text-red-400' : validation.email.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
           <input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} 
-            className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900" />
+            className={`w-full bg-blue-50 border-2 rounded-2xl pl-12 pr-12 py-4 outline-none transition-all font-bold text-blue-900 ${validation.email.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.email.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            {validation.email.status === 'success' && <Check className="text-emerald-500" size={18} />}
+            {validation.email.status === 'error' && <AlertCircle className="text-red-500" size={18} />}
+          </div>
         </div>
         <div className="relative">
-          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={20} />
+          <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${validation.password.status === 'error' ? 'text-red-400' : validation.password.status === 'success' ? 'text-emerald-400' : 'text-blue-400'}`} size={20} />
           <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} 
-            className="w-full bg-blue-50 border-2 border-blue-100 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-blue-900" />
+            className={`w-full bg-blue-50 border-2 rounded-2xl pl-12 pr-12 py-4 outline-none transition-all font-bold text-blue-900 ${validation.password.status === 'error' ? 'border-red-200 focus:border-red-400' : validation.password.status === 'success' ? 'border-emerald-200 focus:border-emerald-400' : 'border-blue-100 focus:border-blue-400 focus:bg-white'}`} />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            {validation.password.status === 'success' && <Check className="text-emerald-500" size={18} />}
+            {validation.password.status === 'error' && <AlertCircle className="text-red-500" size={18} />}
+          </div>
         </div>
       </div>
 

@@ -14,9 +14,11 @@ import {
   Loader2 } from
 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '../components/ToastContext';
 
 const OfferForm = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     skillsOffered: user.skills.length > 0 ? [user.skills[0]] : [],
@@ -28,19 +30,19 @@ const OfferForm = ({ user, setUser }) => {
     e.preventDefault();
 
     if (!user.is_verified) {
-      alert("Verification Pending: Your identity documents are being reviewed. You can explore the community, but you'll be able to post skills once your account is verified by an admin.");
+      toast.warning("Your identity documents are being reviewed. You can explore the community, but you'll be able to post skills once your account is verified by an admin.");
       return;
     }
 
     if (formData.skillsOffered.length === 0) {
-      alert("Please select at least one skill to offer!");
+      toast.error("Please select at least one skill to offer!");
       return;
     }
     setIsSubmitting(true);
 
     setTimeout(() => {
       setIsSubmitting(false);
-      alert("Great! Your skill is now in the market. People can now find you and ask for help.");
+      toast.success("Great! Your skill is now in the market. People can now find you and ask for help.");
       navigate('/community');
     }, 1500);
   };

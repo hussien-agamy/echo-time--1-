@@ -1,6 +1,12 @@
-
-import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   Home as HomeIcon,
   Users,
@@ -13,49 +19,53 @@ import {
   MessageSquare,
   LogOut,
   Shield,
-  Lock
-} from
-'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+  Lock,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { getStoredUser, saveUser, getToken, removeToken } from './store';
-import { api } from './services/api';
+import { getStoredUser, saveUser, getToken, removeToken } from "./store";
+import { api } from "./services/api";
+import { ToastProvider, useToast } from './components/ToastContext';
 
 // Pages
-import Home from './pages/Home';
-import GetStarted from './pages/GetStarted';
-import Profile from './pages/Profile';
-import Community from './pages/Community';
-import RequestForm from './pages/RequestForm';
-import OfferForm from './pages/OfferForm';
-import Pricing from './pages/Pricing';
-import FreelanceMode from './pages/FreelanceMode';
-import Auth from './pages/Auth';
-import Chat from './pages/Chat';
-import AdminDashboard from './pages/AdminDashboard';
-import Onboarding from './pages/Onboarding';
-import Streaks from './pages/Streaks';
-import { StreakBadge, loadStreaks } from './components/StreakSystem';
-import EchoTimeLogo from './components/EchoTimeLogo';
-import { path } from 'framer-motion/client';
+import Home from "./pages/Home";
+import GetStarted from "./pages/GetStarted";
+import Profile from "./pages/Profile";
+import Community from "./pages/Community";
+import RequestForm from "./pages/RequestForm";
+import OfferForm from "./pages/OfferForm";
+import Pricing from "./pages/Pricing";
+import FreelanceMode from "./pages/FreelanceMode";
+import Auth from "./pages/Auth";
+import Chat from "./pages/Chat";
+import AdminDashboard from "./pages/AdminDashboard";
+import Onboarding from "./pages/Onboarding";
+import Streaks from "./pages/Streaks";
+import { StreakBadge, loadStreaks } from "./components/StreakSystem";
+import EchoTimeLogo from "./components/EchoTimeLogo";
+import { path } from "framer-motion/client";
 
 // Components
 // import { AIAssistant } from './components/AIAssistant';
 
 const Navbar = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const toast = useToast();
   const location = useLocation();
 
   const navLinks = [
-  { name: 'Home', path: '/', icon: <HomeIcon size={18} /> },
-  { name: 'Market', path: '/community', icon: <Users size={18} /> },
-  { name: 'Freelance', path: '/freelance', icon: <Lock size={18} /> },
-  { name: 'Streaks', path: '/streaks', icon: <Flame size={18} /> },
-  { name: 'Messages', path: '/chat', icon: <MessageSquare size={18} /> },
-  { name: 'Pricing', path: '/pricing', icon: <CreditCard size={18} /> },
-  { name: 'Profile', path: '/profile', icon: <UserIcon size={18} /> },
-  ...(user.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: <Shield size={18} /> }] : [])];
-
+    { name: "Home", path: "/", icon: <HomeIcon size={18} /> },
+    { name: "Market", path: "/community", icon: <Users size={18} /> },
+    { name: "Freelance", path: "/freelance", icon: <Lock size={18} /> },
+    { name: "Streaks", path: "/streaks", icon: <Flame size={18} /> },
+    { name: "Messages", path: "/chat", icon: <MessageSquare size={18} /> },
+    { name: "Pricing", path: "/pricing", icon: <CreditCard size={18} /> },
+    { name: "Profile", path: "/profile", icon: <UserIcon size={18} /> },
+    ...(user.role === "admin"
+      ? [{ name: "Admin", path: "/admin", icon: <Shield size={18} /> }]
+      : []),
+  ];
 
   if (!user.isAuthenticated) return null;
 
@@ -64,73 +74,136 @@ const Navbar = ({ user, onLogout }) => {
       <div className="max-w-8xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <EchoTimeLogo size={40} />
-          <span className="text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-blue-700 to-blue-500 tracking-tight">Echo Time</span>
+          <span className="text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-blue-700 to-blue-500 tracking-tight">
+            Echo Time
+          </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) =>
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`flex items-center gap-1.5 font-bold transition-all duration-300 relative py-2 ${
-            location.pathname === link.path ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'}`
-            }>
-            
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`flex items-center gap-1.5 font-bold transition-all duration-300 relative py-2 ${
+                location.pathname === link.path
+                  ? "text-blue-600"
+                  : "text-slate-500 hover:text-blue-500"
+              }`}
+            >
               {link.icon}
               {link.name}
-              {location.pathname === link.path &&
-            <motion.div layoutId="nav-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
-            }
+              {location.pathname === link.path && (
+                <motion.div
+                  layoutId="nav-underline"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full"
+                />
+              )}
             </Link>
-          )}
+          ))}
         </div>
 
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-2">
             <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 shadow-sm">
               <Clock size={16} className="text-blue-600" />
-              <span className="font-black text-blue-700">{user.timeBalance}h</span>
+              <span className="font-black text-blue-700">
+                {user.time_balance}h
+              </span>
             </div>
-            <StreakBadge streaks={loadStreaks()} onClick={() => window.location.hash = '#/streaks'} />
+            <StreakBadge
+              streaks={loadStreaks()}
+              onClick={() => (window.location.hash = "#/streaks")}
+            />
           </div>
-          
-          <button className="hidden md:flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors" onClick={onLogout}>
+
+          <button
+            className="hidden md:flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors"
+            onClick={() => setShowLogoutConfirm(true)}
+          >
             <LogOut size={20} />
           </button>
 
-          <button className="md:hidden p-2 text-slate-600" onClick={() => setIsOpen(!isOpen)}>
+          <button
+            className="md:hidden p-2 text-slate-600"
+            onClick={() => setIsOpen(!isOpen)}
+          >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
       <AnimatePresence>
-        {isOpen &&
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-blue-100 py-6 px-6 flex flex-col gap-4 shadow-2xl">
-          
-            {navLinks.map((link) =>
-          <Link
-            key={link.path}
-            to={link.path}
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-4 p-4 rounded-2xl hover:bg-blue-50 text-slate-700 font-bold">
-            
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-blue-100 py-6 px-6 flex flex-col gap-4 shadow-2xl"
+          >
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-4 p-4 rounded-2xl hover:bg-blue-50 text-slate-700 font-bold"
+              >
                 {link.icon}
                 {link.name}
               </Link>
-          )}
-            <button onClick={onLogout} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-red-50 text-red-600 font-bold">
+            ))}
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="flex items-center gap-4 p-4 rounded-2xl hover:bg-red-50 text-red-600 font-bold"
+            >
               <LogOut size={18} /> Logout
             </button>
           </motion.div>
-        }
+        )}
       </AnimatePresence>
-    </nav>);
 
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-blue-900/40 backdrop-blur-sm px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative"
+            >
+              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <LogOut size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-center text-blue-950 mb-2">Sign Out</h3>
+              <p className="text-center text-slate-500 font-medium mb-8">Are you sure you want to sign out of your account?</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("Successfully logged out!");
+                    setShowLogoutConfirm(false);
+                    onLogout();
+                  }}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
 };
 
 const App = () => {
@@ -145,10 +218,14 @@ const App = () => {
       const token = getToken();
       if (token && !user.isAuthenticated) {
         try {
-          const response = await api.get('/users/me');
-          setUser({ ...response.data, isAuthenticated: true, hasCompletedOnboarding: response.data.is_onboarded });
+          const response = await api.get("/users/me");
+          setUser({
+            ...response.data,
+            isAuthenticated: true,
+            hasCompletedOnboarding: response.data.is_onboarded,
+          });
         } catch (error) {
-          console.error('Failed to fetch user:', error);
+          console.error("Failed to fetch user:", error);
           removeToken();
           setUser({ ...INITIAL_USER, isAuthenticated: false });
         }
@@ -167,11 +244,11 @@ const App = () => {
       <motion.div
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}>
-        
+        transition={{ duration: 0.3 }}
+      >
         {children}
-      </motion.div>);
-
+      </motion.div>
+    );
   };
 
   const ProtectedRoute = ({ children }) => {
@@ -180,42 +257,140 @@ const App = () => {
   };
 
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col animated-gradient pb-20 md:pb-0 selection:bg-blue-200">
+    <ToastProvider>
+      <Router>
+        <div className="min-h-screen flex flex-col animated-gradient pb-20 md:pb-0 selection:bg-blue-200">
         <Navbar user={user} onLogout={handleLogout} />
-        
-        <main className={`flex-1 ${user.isAuthenticated ? 'mt-20' : ''} px-4 md:px-8 max-w-7xl mx-auto w-full py-8`}>
+
+        <main
+          className={`flex-1 ${user.isAuthenticated ? "mt-20" : ""} px-4 md:px-8 max-w-7xl mx-auto w-full py-8`}
+        >
           <Routes>
-            <Route path="/auth" element={!user.isAuthenticated ? <Auth onLogin={setUser} /> : <Navigate to="/" />} />
-            
-            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/get-started" element={<ProtectedRoute><GetStarted /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute><Community user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/request-help" element={<ProtectedRoute><RequestForm user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/offer-help" element={<ProtectedRoute><OfferForm user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/pricing" element={<ProtectedRoute><Pricing user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/freelance" element={<ProtectedRoute><FreelanceMode user={user} setUser={setUser} /></ProtectedRoute>} />
-            <Route path="/chat" element={user.isAuthenticated ? <Chat user={user} /> : <Navigate to="/auth" />} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard user={user} /></ProtectedRoute>} />
-            <Route path="/streaks" element={<ProtectedRoute><Streaks user={user} setUser={setUser} /></ProtectedRoute>} />
+            <Route
+              path="/auth"
+              element={
+                !user.isAuthenticated ? (
+                  <Auth onLogin={setUser} />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/get-started"
+              element={
+                <ProtectedRoute>
+                  <GetStarted />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <ProtectedRoute>
+                  <Community user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/request-help"
+              element={
+                <ProtectedRoute>
+                  <RequestForm user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/offer-help"
+              element={
+                <ProtectedRoute>
+                  <OfferForm user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pricing"
+              element={
+                <ProtectedRoute>
+                  <Pricing user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/freelance"
+              element={
+                <ProtectedRoute>
+                  <FreelanceMode user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                user.isAuthenticated ? (
+                  <Chat user={user} />
+                ) : (
+                  <Navigate to="/auth" />
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/streaks"
+              element={
+                <ProtectedRoute>
+                  <Streaks user={user} setUser={setUser} />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
 
-        {user.isAuthenticated &&
-        <footer className="bg-white/10 backdrop-blur-xl py-12 border-t border-white/20 mt-20 hidden md:block">
+        {user.isAuthenticated && (
+          <footer className="bg-white/10 backdrop-blur-xl py-12 border-t border-white/20 mt-20 hidden md:block">
             <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8 text-blue-100">
               <div className="flex flex-col gap-2">
-                <span className="text-white font-black text-2xl tracking-tight">Echo Time</span>
-                <p className="text-sm opacity-80">Building futures, one hour at a time.</p>
+                <span className="text-white font-black text-2xl tracking-tight">
+                  Echo Time
+                </span>
+                <p className="text-sm opacity-80">
+                  Building futures, one hour at a time.
+                </p>
               </div>
-              <p className="text-xs">© {new Date().getFullYear()} Echo Time. All rights reserved.</p>
+              <p className="text-xs">
+                © {new Date().getFullYear()} Echo Time. All rights reserved.
+              </p>
             </div>
           </footer>
-        }
+        )}
       </div>
-    </Router>);
-
+    </Router>
+  </ToastProvider>
+  );
 };
 
 export default App;

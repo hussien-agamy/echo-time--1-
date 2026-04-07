@@ -19,6 +19,7 @@ import {
 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useToast } from '../components/ToastContext';
 
 
 
@@ -29,6 +30,7 @@ import { Link } from 'react-router-dom';
 
 const Community = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -74,7 +76,7 @@ const Community = ({ user, setUser }) => {
       // 3. زيادة رصيد الوقت
       setUser({
         ...user,
-        timeBalance: user.timeBalance + req.timeRequired,
+        time_balance: user.time_balance + req.timeRequired,
         reviewsCount: (user.reviewsCount || 0) + 1
       });
 
@@ -82,7 +84,7 @@ const Community = ({ user, setUser }) => {
       navigate('/chat');
     } catch (err) {
       console.error('Failed to accept task:', err);
-      alert('Failed to accept task: ' + err.message);
+      toast.error('Failed to accept task: ' + err.message);
     } finally {
       setIsProcessing(null);
     }

@@ -6,8 +6,9 @@ import {
   X, ChevronRight, Lock, Unlock
 } from 'lucide-react';
 
-// ─── Streak Storage (client-side, mirrors what the backend would track) ───
-const STREAK_STORAGE_KEY = 'echo_streaks';
+import { api } from '../services/api';
+
+// ─── Streak Storage (mirrors what the backend would track) ───
 
 const getDefaultStreaks = () => ({
   learning: { count: 0, lastDate: null, freezesLeft: 1, totalEarned: 0, dailyActions: 0 },
@@ -17,13 +18,21 @@ const getDefaultStreaks = () => ({
   milestones: []
 });
 
-const loadStreaks = () => {
-  const saved = localStorage.getItem(STREAK_STORAGE_KEY);
-  return saved ? JSON.parse(saved) : getDefaultStreaks();
+const loadStreaks = async () => {
+  try {
+    const res = await api.get('/users/streaks');
+    return res.data || getDefaultStreaks();
+  } catch(e) {
+    return getDefaultStreaks();
+  }
 };
 
-const persistStreaks = (streaks) => {
-  localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(streaks));
+const persistStreaks = async (streaks) => {
+  try {
+    await api.put('/users/streaks', streaks);
+  } catch(e) {
+    console.error("Failed to persist streaks", e);
+  }
 };
 
 // ─── Milestones ───
@@ -273,15 +282,17 @@ const StreakNotification = ({ notification, onDismiss }) => {
 
 // ─── Main Streak Dashboard Panel ───
 export const StreakDashboard = ({ user, setUser }) => {
-  const [streaks, setStreaks] = useState(loadStreaks());
+  const [streaks, setStreaks] = useState(getDefaultStreaks());
   const [notification, setNotification] = useState(null);
   const [activeView, setActiveView] = useState('overview');
 
   useEffect(() => {
     // Check streak validity on mount
-    const today = new Date().toDateString();
-    const updated = { ...streaks };
-    let hasChanges = false;
+    const init = async () => {
+      const loaded = await loadStreaks();
+      const today = new Date().toDateString();
+      const updated = { ...loaded };
+      let hasChanges = false;
 
     ['learning', 'helping', 'contribution'].forEach(type => {
       const streak = updated[type];
@@ -323,10 +334,14 @@ export const StreakDashboard = ({ user, setUser }) => {
       }
     });
 
-    if (hasChanges) {
-      setStreaks(updated);
-      persistStreaks(updated);
-    }
+      if (hasChanges) {
+        setStreaks(updated);
+        await persistStreaks(updated);
+      } else {
+        setStreaks(updated);
+      }
+    };
+    init();
   }, []);
 
   const logAction = (type) => {
@@ -382,7 +397,7 @@ export const StreakDashboard = ({ user, setUser }) => {
 
       // Award credits
       if (milestone.credits > 0 && user && setUser) {
-        setUser({ ...user, timeBalance: (user.timeBalance || 0) + milestone.credits });
+        setUser({ ...user, time_balance: (user.time_balance || 0) + milestone.credits });
       }
     }
 
@@ -581,7 +596,13 @@ export const StreakDashboard = ({ user, setUser }) => {
 };
 
 // ─── Profile Streak Widget (compact, for embedding in Profile page) ───
-export const ProfileStreakWidget = ({ streaks }) => {
+export const ProfileStreakWidget = () => {
+  const [streaks, setStreaks] = useState(null);
+
+  useEffect(() => {
+    loadStreaks().then(s => setStreaks(s));
+  }, []);
+
   if (!streaks) return null;
   const maxStreak = Math.max(
     streaks.contribution?.count || 0,

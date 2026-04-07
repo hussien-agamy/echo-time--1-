@@ -5,7 +5,7 @@ const INITIAL_USER = {
   username: 'Guest',
   isAuthenticated: false,
   isVerified: false,
-  timeBalance: 0,
+  time_balance: 0,
   hasCompletedOnboarding: false,
   badges: [],
   ratingAvg: 0,
