@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, Clock, ShieldCheck, Zap, Star, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,8 +58,15 @@ const PricingCard = ({ title, price, hours, features, isPopular, onSelect, isLoa
 const Pricing = ({ user, setUser }) => {
   const toast = useToast();
   const [loadingPlan, setLoadingPlan] = useState(null);
-
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleUpdateBalance = async (hours, label) => {
     setLoadingPlan(label);
@@ -91,7 +97,60 @@ const Pricing = ({ user, setUser }) => {
   };
 
   return (
-    <div className="space-y-24 py-12">
+    <div className="relative min-h-screen">
+      <AnimatePresence>
+        {isInitialLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-blue-900 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,64,175,0.2),transparent)]" />
+            
+            <div className="relative space-y-8 flex flex-col items-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-24 h-24 bg-white/10 backdrop-blur-3xl rounded-[2.5rem] border border-white/20 flex items-center justify-center shadow-2xl shadow-blue-500/20"
+              >
+                <div className="relative">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                    className="absolute -inset-4 border-2 border-dashed border-blue-400/30 rounded-full"
+                  />
+                  <CreditCard className="text-white w-10 h-10" />
+                </div>
+              </motion.div>
+              
+              <div className="flex flex-col items-center space-y-2">
+                <motion.h2 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl font-black text-white tracking-widest uppercase"
+                >
+                  Analyzing Market
+                </motion.h2>
+                <motion.div 
+                   className="h-1 bg-blue-500/20 w-48 rounded-full overflow-hidden"
+                >
+                   <motion.div 
+                     initial={{ x: "-100%" }}
+                     animate={{ x: "0%" }}
+                     transition={{ duration: 3, ease: "easeInOut" }}
+                     className="h-full bg-blue-400"
+                   />
+                </motion.div>
+                <p className="text-blue-300 font-bold text-xs uppercase tracking-[0.3em]">Preparing Fleet Pricing</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`space-y-24 py-12 transition-all duration-1000 ${isInitialLoading ? 'blur-2xl scale-95 opacity-0' : 'blur-0 scale-100 opacity-100'}`}>
       <div className="text-center space-y-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -241,6 +300,7 @@ const Pricing = ({ user, setUser }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>);
 
 };

@@ -46,7 +46,6 @@ const TABS = [
   { id: 'overview', name: 'Overview', icon: <LayoutDashboard size={18} /> },
   { id: 'users', name: 'User Management', icon: <Users size={18} /> },
   { id: 'economy', name: 'Time Economy', icon: <Clock size={18} /> },
-  { id: 'disputes', name: 'Disputes', icon: <ShieldAlert size={18} /> },
   { id: 'analytics', name: 'Analytics', icon: <BarChart2 size={18} /> },
 ];
 
@@ -343,7 +342,6 @@ export default function AdminDashboard({ user }) {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [economyData, setEconomyData] = useState(null);
-  const [disputeData, setDisputeData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -363,7 +361,6 @@ export default function AdminDashboard({ user }) {
       let endpoint = '/admin/stats';
       if (tabId === 'users') endpoint = '/admin/users';
       else if (tabId === 'economy') endpoint = '/admin/economy';
-      else if (tabId === 'disputes') endpoint = '/admin/disputes';
       else if (tabId === 'analytics') endpoint = '/admin/analytics';
 
       const response = await api.get(endpoint);
@@ -371,7 +368,6 @@ export default function AdminDashboard({ user }) {
       if (tabId === 'overview') setStats(response.data);
       else if (tabId === 'users') setUsers(response.data);
       else if (tabId === 'economy') setEconomyData(response.data);
-      else if (tabId === 'disputes') setDisputeData(response.data);
       else if (tabId === 'analytics') setAnalyticsData(response.data);
 
     } catch (error) {
@@ -392,7 +388,7 @@ export default function AdminDashboard({ user }) {
   };
 
   const renderContent = () => {
-    if (isLoading && !stats && !users.length && !economyData && !disputeData && !analyticsData) {
+    if (isLoading && !stats && !users.length && !economyData && !analyticsData) {
         return (
             <div className="flex items-center justify-center h-[60vh]">
                 <Loader2 className="animate-spin text-blue-600" size={48} />
@@ -501,49 +497,6 @@ export default function AdminDashboard({ user }) {
                         ))}
                     </tbody>
                 </table>
-            </div>
-          </motion.div>
-        );
-      case 'disputes':
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-             <div className="space-y-1">
-                <h2 className="text-5xl font-black text-blue-950 tracking-tighter">Priority Flags</h2>
-                <p className="text-lg text-slate-500 font-bold">Review platform friction and quality warnings.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {disputeData?.flaggedReviews?.map((r, i) => (
-                    <motion.div key={i} whileHover={{ y: -5 }} className="bg-white/80 p-8 rounded-4xl border border-red-100 shadow-xl space-y-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <ShieldAlert size={80} className="text-red-600" />
-                        </div>
-                        <div className="flex justify-between items-start">
-                            <div className="p-3 bg-red-50 text-red-600 rounded-2xl">
-                                <Star size={24} fill="currentColor" />
-                            </div>
-                            <div className="bg-red-100 text-red-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                                {r.rating} Stars
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h4 className="font-black text-blue-950 leading-tight">Review by @{r.reviewer?.username}</h4>
-                            <p className="text-sm font-bold text-slate-500 italic">"{r.comment}"</p>
-                        </div>
-                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-400">
-                           <span>Target: @{r.reviewee?.username}</span>
-                           <button className="text-blue-600 font-black flex items-center gap-1 hover:gap-2 transition-all">
-                                Investigate <ChevronRight size={14} />
-                           </button>
-                        </div>
-                    </motion.div>
-                ))}
-                {(!disputeData?.flaggedReviews || disputeData.flaggedReviews.length === 0) && (
-                    <div className="col-span-full py-20 text-center bg-emerald-50/50 rounded-4xl border-2 border-dashed border-emerald-100">
-                        <CheckCircle size={48} className="text-emerald-300 mx-auto mb-4" />
-                        <p className="text-emerald-800 font-black text-xl uppercase tracking-widest">Sky is Clear</p>
-                        <p className="text-emerald-600 font-bold">No priority flags or disputes detected.</p>
-                    </div>
-                )}
             </div>
           </motion.div>
         );

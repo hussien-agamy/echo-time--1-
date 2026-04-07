@@ -38,6 +38,8 @@ const Profile = ({ user, setUser }) => {
   const [newSkill, setNewSkill] = useState('');
   const [history, setHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const toast = useToast();
 
   const tabs = [
@@ -107,9 +109,23 @@ const Profile = ({ user, setUser }) => {
     }
   };
 
+  const fetchReviews = async () => {
+    setIsLoadingReviews(true);
+    try {
+      const response = await api.get(`/reviews/user/${user.id}`);
+      setReviews(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'history') {
       fetchHistory();
+    } else if (activeTab === 'reviews') {
+      fetchReviews();
     }
   }, [activeTab]);
 
@@ -384,7 +400,90 @@ const Profile = ({ user, setUser }) => {
             </motion.div>
           }
 
-          {(activeTab === 'certs' || activeTab === 'reviews') &&
+          {activeTab === 'reviews' && (
+            <motion.div
+              key="reviews"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-10"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-4xl font-black text-blue-900 tracking-tight">Citizen Feedback</h3>
+                <div className="flex items-center gap-2 bg-blue-50 px-5 py-2 rounded-2xl border border-blue-100">
+                   <Star size={20} className="text-amber-400 fill-amber-400" />
+                   <span className="font-black text-blue-900">{user.ratingAvg || '0.0'}</span>
+                </div>
+              </div>
+
+              {isLoadingReviews ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-blue-400 font-black uppercase tracking-widest text-xs">Accessing Records...</p>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center space-y-8">
+                  <div className="w-32 h-32 bg-blue-50 rounded-[3rem] flex items-center justify-center text-blue-200 shadow-inner">
+                    <Star size={64} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-3xl font-black text-blue-900 tracking-tight">Pristine Record</h3>
+                    <p className="text-blue-400 text-xl font-bold">No citizens have provided feedback yet. Start helping to build your reputation!</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {reviews.map((review) => (
+                    <motion.div 
+                      key={review.id}
+                      whileHover={{ y: -5 }}
+                      className="bg-white p-8 rounded-[2.5rem] border border-blue-50 shadow-xl relative overflow-hidden group"
+                    >
+                      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                         <Star size={80} className="text-blue-600" />
+                      </div>
+                      <div className="flex items-center gap-4 mb-6 relative z-10">
+                        <img 
+                          src={review.reviewer?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.reviewer?.username}`} 
+                          className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-md"
+                          alt=""
+                        />
+                        <div>
+                          <p className="font-black text-blue-900 leading-tight">{review.reviewer?.full_name}</p>
+                          <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">@{review.reviewer?.username}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={16} 
+                            className={i < review.rating ? "fill-amber-400 text-amber-400" : "text-blue-100"} 
+                          />
+                        ))}
+                      </div>
+
+                      <p className="text-blue-800 font-bold leading-relaxed mb-6 italic">
+                        "{review.comment || 'No comment provided.'}"
+                      </p>
+
+                      <div className="pt-6 border-t border-blue-50 flex items-center justify-between">
+                         <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest">
+                           {review.task?.title}
+                         </span>
+                         <span className="text-[9px] font-black text-slate-300">
+                           {new Date(review.created_at).toLocaleDateString()}
+                         </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'certs' &&
           <motion.div
             key="empty"
             initial={{ opacity: 0 }}
@@ -392,11 +491,11 @@ const Profile = ({ user, setUser }) => {
             className="flex flex-col items-center justify-center py-24 text-center space-y-8">
             
               <div className="w-32 h-32 bg-blue-50 rounded-[3rem] flex items-center justify-center text-blue-200 shadow-inner">
-                {activeTab === 'certs' ? <FileCheck size={64} /> : <Star size={64} />}
+                <FileCheck size={64} />
               </div>
               <div className="space-y-2">
                 <h3 className="text-3xl font-black text-blue-900 tracking-tight">Nothing here yet</h3>
-                <p className="text-blue-400 text-xl font-bold">Help someone today to start building your profile!</p>
+                <p className="text-blue-400 text-xl font-bold">Earn certifications to prove your expertise!</p>
               </div>
               <Link to="/community" className="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black text-xl shadow-2xl shadow-blue-100 flex items-center gap-3 hover:-translate-y-1 transition-all">
                 Go to Market
