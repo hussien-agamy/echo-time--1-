@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check, Clock, ShieldCheck, Zap, Star, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, Clock, ShieldCheck, Zap, Star, Loader2, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { useToast } from '../components/ToastContext';
